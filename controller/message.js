@@ -2,16 +2,16 @@
 
 class Message {
   constructor(){}
-  async getMessages (req, res, next) {
+  async getMessages (req, resp, next) {
     
   }
-  async getMessageById (req, res, next) {
+  async getMessageById (req, resp, next) {
     
   }
-  async addMessage (req, res, next) {
+  async addMessage (req, resp, next) {
     
   }
-  async seen (req, res, next) {
+  async seen (req, resp, next) {
     
   }
 }

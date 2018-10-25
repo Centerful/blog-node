@@ -2,16 +2,16 @@
 
 class Admin {
   constructor(){}
-  async login (req, res, next) {
+  async login (req, resp, next) {
     
   }
-  async signout (req, res, next) {
+  async signout (req, resp, next) {
     
   }
-  async register (req, res, next) {
+  async register (req, resp, next) {
     
   }
-  async resetpw (req, res, next) {
+  async resetpw (req, resp, next) {
     
   }
 }

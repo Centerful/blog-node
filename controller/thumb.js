@@ -2,10 +2,10 @@
 
 class Thumb {
   constructor(){}
-  async getThumbs (req, res, next) {
+  async getThumbs (req, resp, next) {
     
   }
-  async getThumbUsers (req, res, next) {
+  async getThumbUsers (req, resp, next) {
     
   }
 }

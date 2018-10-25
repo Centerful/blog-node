@@ -2,6 +2,7 @@
 
 import express from 'express'
 
+import sequence from '../controller/common/sequence'
 import admin from '../controller/admin'
 import authority from '../controller/authority'
 import blog from '../controller/blog'
@@ -21,6 +22,9 @@ router.get('/', function(req, res, next) {
   console.log('welcome')
   res.render('index', { title: ' Blog!' });
 });
+
+// common请求URL
+router.post('/seq', sequence.getSeq)
 
 // 博客请求URL
 router.get('/blogs', blog.getBlogs)

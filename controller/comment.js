@@ -2,16 +2,16 @@
 
 class Comment {
   constructor(){}
-  async updateComment (req, res, next) {
+  async updateComment (req, resp, next) {
     
   }
-  async deleteComment (req, res, next) {
+  async deleteComment (req, resp, next) {
     
   }
-  async addThumb (req, res, next) {
+  async addThumb (req, resp, next) {
     
   }
-  async deleteThumb (req, res, next) {
+  async deleteThumb (req, resp, next) {
     
   }
 }

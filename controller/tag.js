@@ -2,16 +2,16 @@
 
 class Tag {
   constructor(){}
-  async getTags (req, res, next) {
+  async getTags (req, resp, next) {
     
   }
-  async getTagById (req, res, next) {
+  async getTagById (req, resp, next) {
     
   }
-  async addTag (req, res, next) {
+  async addTag (req, resp, next) {
     
   }
-  async deleteTag (req, res, next) {
+  async deleteTag (req, resp, next) {
     
   }
 }

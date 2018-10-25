@@ -22,7 +22,13 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.all('*', (req, res, next) => {
   // 全局过滤器
-  console.log('进入全局过滤器')
+  console.log('')
+  console.log(req.params)
+  console.log(req.query)
+  console.log(req.body)
+  res.header("Access-Control-Allow-Origin","*");
+  res.header("Access-Control-Allow-Headers","content-type");
+  res.header("Access-Control-Allow-Methods","DELETE,PUT,POST,GET,OPTIONS");
   next()
 })
 
