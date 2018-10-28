@@ -1,11 +1,12 @@
-import chalk from 'chalk'
+import express from 'express'
+import db from './db/db'
 import router from './routes/index'
+const config = require('config-lite')(__dirname)
 var createError = require('http-errors');
-var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
-
+import chalk from 'chalk'
 
 
 var app = express();
@@ -53,8 +54,8 @@ app.use(function(err, req, res, next) {
 
 
 // module.exports = app;
-app.listen(3000, () => {
+app.listen(config.server, () => {
   console.log(
-    chalk.green(`成功监听端口：3000`)
+    chalk.green(`成功监听端口：${config.server}`)
   )
 });
