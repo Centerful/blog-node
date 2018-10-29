@@ -23,3 +23,17 @@
 - req.params获得RESTful-URL上参数,req.query获得URL-?后面的参数,req.body获得请求中Body里的参数,解析x-www-form-urlencoded,json需要bodyparser中间件,解析multipart/form-data需要multer中间件.
 - GET请求,query,params
 - POST,PUT,PATCH,DELETE请求,query,params,body(x-www...,raw可以,form-data与binary需要multer)
+
+# TODO-LIST
+- [ ] 先快速开发基础功能,等到基础功能开发的差不多了,在完善日志/异常等功能(这些功能可以参考全球资金项目).
+- 需要配置的功能:
+    + [ ] controller层的异常,在返回时进行统一拦截与封装.
+    + [ ] 自定义异常,封装异常码与异常信息.
+    + [ ] 在controller层进行日志收集
+    + [ ] 定义统一的ajax数据返回的格式.
+    + [ ] 静态资源统一路由.
+    + [ ] 文件与图片上传
+    + [ ] jdbc连接池
+    + [ ] 了解mongodb不支持事务会造成什么影响.
+    + [ ] OAuth2.0
+    + [ ] XSS过滤.

@@ -1,9 +1,14 @@
 'use strict'
 
-class Admin {
+class Login {
   constructor(){}
   async login (req, resp, next) {
-    
+    if (req.params.username) {
+
+    }
+    if (req.params.password) {
+
+    }
   }
   async signout (req, resp, next) {
     
@@ -16,4 +21,4 @@ class Admin {
   }
 }
 
-export default new Admin()
+export default new Login()

@@ -2,8 +2,8 @@
 
 import express from 'express'
 
-import sequence from '../controller/common/sequence'
-import admin from '../controller/admin'
+import Base from '../controller/common/base'
+import login from '../controller/login'
 import authority from '../controller/authority'
 import blog from '../controller/blog'
 import book from '../controller/book'
@@ -24,7 +24,7 @@ router.get('/', function(req, res, next) {
 });
 
 // common请求URL
-router.post('/seq', sequence.getSeq)
+router.post('/seq', new Base().getSeq)
 
 // 博客请求URL
 router.get('/blogs', blog.getBlogs)
@@ -105,10 +105,10 @@ router.delete('/users/:id', user.deleteUser)
 router.get('/users/:id/messages', user.getUserMessages)
 
 // admin请求URL
-router.post('/login', admin.login)
-router.post('/signout', admin.signout)
-router.post('/register', admin.register)
-router.patch('/resetpw', admin.resetpw)
+router.post('/login', login.login)
+router.post('/signout', login.signout)
+router.post('/register', login.register)
+router.patch('/resetpw', login.resetpw)
 
 // message请求URL.
 router.get('/messages', message.getMessages)
