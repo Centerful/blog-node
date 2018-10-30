@@ -1,3 +1,17 @@
+# Blog-node
+
+> A blog,back-end project
+
+## Build Setup
+
+``` bash
+# install dependencies
+npm install
+
+# serve with hot reload at localhost:8080
+npm start dev
+```
+
 # 目录结构
 - Controller->类似servlet中的controller,可以直接在controller中写处理逻辑(service中的),也可以在开个service层.
 - Base->通用的controller组件,比如评论与点赞的某些方法很多地方都会用到所以单独抽出一个实现层.
@@ -37,3 +51,6 @@
     + [ ] 了解mongodb不支持事务会造成什么影响.
     + [ ] OAuth2.0
     + [ ] XSS过滤.
+    + [ ] controller入参对象,需要经过非空校验.写个copy(拷贝时只给目标对象存在的属性赋值)-validate的插件(非空,类型,长度,数值范围等.).
+    + [ ] 统一的控制台提示方法.
+    + [ ] express-session的使用.

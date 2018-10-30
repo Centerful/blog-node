@@ -8,5 +8,6 @@ module.exports = {
     username: '',
     password: '',
     url: 'mongodb://localhost:27017/blogs'
-  }
+  },
+  salt: 'HUWISW2239489'
 }

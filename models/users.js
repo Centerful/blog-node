@@ -8,6 +8,8 @@ const Schema = mongoose.Schema
 const usersModel = new Schema ({
   id: Number, // 主键
   user_name: String, // 用户名称
+  password:  String, // 用户密码,加密后的
+  email: String, // 用户邮箱
   user_avatar: String, // 用户头像URL
   backdrop_img: String, // 背景图片URL
   gender: String, // 性别:MALE,FEMALE,NULL

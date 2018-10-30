@@ -1,7 +1,7 @@
 'use strict'
 
 import express from 'express'
-
+import expressAsyncErrors from 'express-async-errors'
 import Base from '../controller/common/base'
 import login from '../controller/login'
 import authority from '../controller/authority'
@@ -18,8 +18,9 @@ import user from '../controller/user'
 const router = express.Router()
 
 // 欢迎页面
-router.get('/', function(req, res, next) {
+router.get('/', async function(req, res, next) {
   console.log('welcome')
+  throw new Error('welcome, error!')
   res.render('index', { title: ' Blog!' });
 });
 
@@ -106,7 +107,7 @@ router.get('/users/:id/messages', user.getUserMessages)
 
 // admin请求URL
 router.post('/login', login.login)
-router.post('/signout', login.signout)
+router.post('/logout', login.logout)
 router.post('/register', login.register)
 router.patch('/resetpw', login.resetpw)
 
