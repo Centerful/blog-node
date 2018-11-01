@@ -1,12 +1,14 @@
 'use strict'
 
 import mongoose from 'mongoose'
+import Sequence from '../controller/common/sequence'
 
 const Schema = mongoose.Schema
 
 const booksModel = new Schema ({
   id: Number, // 主键
   book_name: String, // 文集名称
+  book_type: String, // BOOK,TRASH
   user_id: Number, // 文集创建者
   book_order: Number, // 排序序号
   create_id: Number, // 创建人
@@ -17,5 +19,35 @@ const booksModel = new Schema ({
 })
 
 booksModel.index({id: 1})
+
+/* model自定义方法.自定义的方法不是静态的,需要new一个实例后调用.
+   还是定义在controller层比较好,这里定义一些复杂的查询?
+booksModel.method({
+  async initData (user_id) {
+    let seq = new Sequence()
+    let id = await seq.getId('books')
+    let booksData = []
+    booksData.push({
+      id: id,
+      book_name: '文集',
+      book_type: 'BOOK',
+      user_id: user_id,
+      book_order: 1,
+      create_id: user_id,
+      update_id: user_id
+    })
+    id = await seq.getId('books')
+    booksData.push({
+      id: id,
+      book_name: "垃圾桶",
+      book_type: 'TRASH',
+      user_id: user_id,
+      book_order: 999999,
+      create_id: user_id,
+      update_id: user_id
+    })
+    return mongoose.model('books', booksModel).create(booksData)
+  }
+})*/
 
 export default mongoose.model('books', booksModel)

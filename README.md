@@ -54,3 +54,13 @@ npm start dev
     + [ ] controller入参对象,需要经过非空校验.写个copy(拷贝时只给目标对象存在的属性赋值)-validate的插件(非空,类型,长度,数值范围等.).
     + [ ] 统一的控制台提示方法.
     + [ ] express-session的使用.
+    + [ ] 添加node-热部署.
+
+# 后端项目注意事项
+- [ ] request的路由
+- [ ] session,cookie的parser
+- [ ] 跨域请求控制
+- [ ] request请求权限控制(用户是否有权限进行该操作)
+- [ ] request请求参数校验.
+- [ ] sso(单点登录,登录)模块
+- [ ] 

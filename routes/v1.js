@@ -107,6 +107,7 @@ router.get('/users/:id/messages', user.getUserMessages)
 
 // admin请求URL
 router.post('/login', login.login)
+router.post('/visitor', login.visitor)
 router.post('/logout', login.logout)
 router.post('/register', login.register)
 router.patch('/resetpw', login.resetpw)

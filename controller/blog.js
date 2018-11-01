@@ -6,9 +6,6 @@ import blogsDetailData from '../models/mock/blogs-detail-data'
 class Blog {
   constructor(){}
   async getBlogs (req, resp, next) {
-    // get请求中?后边的参数
-    // post请求中body中的参数
-    // json请求中的json对象.
     let data = blogsData;
     if (req.query.id) {
       data = data.find((e) => {
