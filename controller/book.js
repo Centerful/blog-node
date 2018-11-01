@@ -2,6 +2,7 @@
 
 import Base from './common/base'
 import books from '../models/books'
+import blogs from '../models/blogs'
 import booksData from '../models/mock/books-data'
 
 class Book extends Base {
@@ -29,6 +30,9 @@ class Book extends Base {
     }
     res.send(this.succ('', booksData))
   }
+  /**
+   * 第一次登录的用户进行数据初始化.
+   */
   async initData (user_id) {
     let id = await this.getId('books')
     let booksData = []
@@ -54,7 +58,13 @@ class Book extends Base {
     return books.create(booksData)
   }
   async getBookBlogs (req, res, next) {
-    
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error("用户登录后才能进行此操作")
+    }
+    // 查询当前文集,当前用户下博客,不查询content字段(太长)
+    let blogsData = await blogs.find({books_id: req.params.id, user_id: req.session.user_id}, {content: 0})
+    console.log(blogsData)
+    res.send(this.succ('', blogsData))
   }
   async addBook (req, res, next) {
     

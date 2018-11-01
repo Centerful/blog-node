@@ -11,11 +11,11 @@ const blogsModel = new Schema ({
   user_id: Number,  // 博客创建者
   title: String,  // 博客标题
   content: String,  // 博客内容
-  blog_status: String,  // 博客状态:DRAFT-未发布,PUBLISH-已发布,DELETE-已删除
-  blog_type: String,  // 博客类型:TOP,HOT,NEW,REP,DEL,NORMAL
+  blog_status: {type: String, default: 'DRAFT'},  // 博客状态:DRAFT-未发布,PUBLISH-已发布,DELETE-已删除
+  blog_type: {type: String, default: 'NEW'},  // 博客类型:TOP,HOT,NEW,REP,DEL,NORMAL
   blog_private: Number,  // 是否为私密博客:1.是,2.否
-  columns_id: { type: 'ObjectId', ref: 'columns'},  // 博客发布专栏
-  books_id: { type: 'ObjectId', ref: 'books'},  // 博客所在文集
+  columns_id: Number,  // 博客发布专栏
+  books_id: Number,  // 博客所在文集
   reads: Number,  // 博客阅读数
   blog_order: Number,  // 排序序号,同一文集中的博客
   create_id: Number,  // 创建人

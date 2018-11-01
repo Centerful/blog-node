@@ -11,7 +11,7 @@ const feedsModel = new Schema ({
   feed_date: {type: Date, default: Date.now}, // 发布时间
   feed_status: String, // FEED类型:ENCRYPT,PRIVATE,NORMAL
   content: String, // FEED内容
-  topic_id: { type: 'ObjectId', ref: 'topics'}, // 参与话题ID
+  topic_id: Number, // 参与话题ID
   create_id: Number, // 创建人
   create_time: {type: Date, default: Date.now}, // 创建时间
   update_id: Number, // 修改人(修改人最开始是创建人)
