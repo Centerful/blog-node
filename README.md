@@ -55,7 +55,8 @@ npm start dev
     + [ ] 统一的控制台提示方法.
     + [ ] express-session的使用.
     + [ ] 添加node-热部署.
-    + [ ] 设置自动任务,博客刚发表时三天内状态为new,三天后将状态修改为normal.
+    + [ ] 设置自动任务,博客刚发表时(publish时,不是新增blog)三天内状态为new,三天后将状态修改为normal.
+    + [ ] 使用koa2框架代替express
 
 # 后端项目注意事项
 - [ ] request的路由
@@ -67,8 +68,33 @@ npm start dev
 - [ ] 异常统一拦截
 - [ ] ajax返回信息统一定义.
 - [ ] 项目包(文件目录)规范.(统一的包规范,可以更好的进行容器化,自动化运维/运维辅助工具)
-- [ ] 
 - [ ] 监控与日志.实时日志(elk),服务监控.cpu日志/jdbc日志/RPC日志(dubbo服务等)/系统logger等.
 - [ ] 应用中断后自动重启.
 - [ ] Node应用如何集群
-- [ ] 自动任务模块.
+- [ ] 自动任务模块.-执行定时的调度任务.
+- [ ] 对象扩展运算符了解一下,应用在controller请求入参中.
+
+
+
+## 对象扩展运算符.
+```
+let data = {
+    url: 'dwjd',
+    content: '激动我记得',
+    title: '幸存的男孩',
+    session: {
+        user_id: 12
+    }
+}
+let {
+    content = '都忘记哦i',
+    title = '等我急',
+    age = 123,
+    session: {user_id, name = 'san'}
+} = data
+
+user_id => 12
+name => 'san'
+title = '幸存的男孩'
+age = 123
+```

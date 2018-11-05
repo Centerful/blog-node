@@ -102,7 +102,7 @@ class Login extends Base {
     }
     // 邮箱注册,用户名和邮箱字段是一致的.
     if (is_email) {
-      user.email = data.user_name
+      user.email = user.user_name
       // TODO 发送邮件.
     }
     await users.create(user)
