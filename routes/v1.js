@@ -26,6 +26,7 @@ router.get('/', async function(req, res, next) {
 
 // common请求URL
 router.post('/seq', new Base().getSeq)
+router.post('/images', new Base().addImages)
 
 // 博客请求URL
 router.get('/blogs', blog.getBlogs)

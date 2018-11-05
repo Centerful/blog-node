@@ -67,6 +67,7 @@ class Login extends Base {
       throw new Error('登录后才能注销')
     }
     delete req.session.user_id
+    delete req.session.visitor
     res.send(this.succ('已注销'))
   }
   /**

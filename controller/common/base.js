@@ -3,11 +3,15 @@
 import Sequence from './sequence'
 import crypto from 'crypto'
 const config = require('config-lite')(__dirname)
+import formidable from 'formidable'
+import fs from 'fs'
 
 class Base extends Sequence{
   constructor(){
     super()
     this.getSeq = this.getSeq.bind(this)
+    this.addImages = this.addImages.bind(this)
+    this.guid = this.guid.bind(this)
     this.encryption = this.encryption.bind(this)
     this.succ = this.succ.bind(this)
     this.fail = this.fail.bind(this)
@@ -18,12 +22,33 @@ class Base extends Sequence{
   }
   async getSeq (req, res, next) {
     let id = await this.getId(req.params.type)
-    res.send({id: id})
+    res.send(succ({id: id}))
+  }
+  /**
+   * 添加图片
+   */
+  async addImages (req, res, next) {
+    let data = new formidable.IncomingForm()
+    data.parse(req, (err, fields, files) => {
+      console.log(files)
+      console.log(fields)
+      console.log(files.file.path)
+      let fileName = guid() + files.file.name.substring(files.file.name.lastIndexOf('.'))
+      fs.writeFileSync(`public/${fileName}`, fs.readFileSync(files.file.path))
+      res.send(succ({path: `public/${fileName}`}))
+    })
+  }
+  guid () {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+        let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r&0x3|0x8)
+        return v.toString(16)
+    })
   }
   encryption (text) {
     const hash = crypto.createHash('md5')
     return hash.update(text + config.passwordSalt).digest('base64')
   }
+  
   /**
    * 浅拷贝
    */
