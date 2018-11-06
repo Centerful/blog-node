@@ -12,6 +12,7 @@ class Base extends Sequence{
     this.getSeq = this.getSeq.bind(this)
     this.addImages = this.addImages.bind(this)
     this.guid = this.guid.bind(this)
+    this.md5 = this.md5.bind(this)
     this.encryption = this.encryption.bind(this)
     this.succ = this.succ.bind(this)
     this.fail = this.fail.bind(this)
@@ -22,7 +23,7 @@ class Base extends Sequence{
   }
   async getSeq (req, res, next) {
     let id = await this.getId(req.params.type)
-    res.send(succ({id: id}))
+    res.send(this.succ({id: id}))
   }
   /**
    * 添加图片
@@ -33,9 +34,10 @@ class Base extends Sequence{
       console.log(files)
       console.log(fields)
       console.log(files.file.path)
-      let fileName = guid() + files.file.name.substring(files.file.name.lastIndexOf('.'))
-      fs.writeFileSync(`public/${fileName}`, fs.readFileSync(files.file.path))
-      res.send(succ({path: `public/${fileName}`}))
+      let file = fs.readFileSync(files.file.path)
+      let fileName = this.md5(file) + files.file.name.substring(files.file.name.lastIndexOf('.'))
+      fs.writeFileSync(`public/images/${fileName}`, file)
+      res.send(this.succ('', {path: `public/images/${fileName}`}))
     })
   }
   guid () {
@@ -44,11 +46,14 @@ class Base extends Sequence{
         return v.toString(16)
     })
   }
+  md5 (file) {
+    let hash = crypto.createHash('md5')
+    return hash.update(file).digest('hex')
+  }
   encryption (text) {
-    const hash = crypto.createHash('md5')
+    let hash = crypto.createHash('md5')
     return hash.update(text + config.passwordSalt).digest('base64')
   }
-  
   /**
    * 浅拷贝
    */
@@ -68,7 +73,7 @@ class Base extends Sequence{
     }
     let dist = {}
     for ( let attr in orig) {
-      dist[attr] = dcopy(orig[attr])
+      dist[attr] = this.dcopy(orig[attr])
     }
     return dist
   }
