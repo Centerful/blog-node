@@ -47,9 +47,7 @@ class Login extends Base {
     if (!nick_name) {
       throw new Error('名称不能为空')
     }
-    let id = await this.getId()
     let user = {
-      id: id,
       nick_name: nick_name,
       email: email,
       user_avatar: user_avatar
@@ -94,11 +92,10 @@ class Login extends Base {
     if (user) {
       throw new Error(is_email ? '该邮箱已被注册' : '该账号已被注册')
     }
-    let id = await this.getId()
     let newPassword = this.encryption(password)
     user = {
-      id: id,
       user_name: user_name,
+      nick_name: user_name,
       password: newPassword
     }
     // 邮箱注册,用户名和邮箱字段是一致的.

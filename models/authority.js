@@ -6,11 +6,10 @@ const Schema = mongoose.Schema
 
 // 权限 TODO 字段还未定义好
 const messagesModel = new Schema ({
-  id: Number,
   content: String,
-  create_id: { type: Schema.Types.ObjectId, ref: 'users' },
+  creater: { type: Schema.Types.ObjectId, ref: 'users' },
   create_time: {type: Date, default: Date.now},
-  update_id: { type: Schema.Types.ObjectId, ref: 'users' },
+  updater: { type: Schema.Types.ObjectId, ref: 'users' },
   update_time: {type: Date, default: Date.now},
   status: {type: Number, default: 1}
 })

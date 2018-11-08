@@ -22,7 +22,7 @@ class Book extends Base {
     if (!req.session.user_id || req.session.visitor) {
       throw new Error("用户登录后才能进行此操作")
     }
-    let booksData = await books.find({ create_id: req.session.user_id })
+    let booksData = await books.find({ creater: req.session.user_id })
     // 该用户没有books,进行初始化.
     if (!booksData || booksData.length == 0) {
       booksData = await this.initData(req.session.user_id)
@@ -35,24 +35,20 @@ class Book extends Base {
    * 第一次登录的用户进行数据初始化.
    */
   async initData (user_id) {
-    let id = await this.getId('books')
     let booksData = []
     booksData.push({
-      id: id,
       book_name: '文集',
       book_type: 'BOOK',
       book_order: 1,
-      create_id: user_id,
-      update_id: user_id
+      creater: user_id,
+      updater: user_id
     })
-    id = await this.getId('books')
     booksData.push({
-      id: id,
       book_name: "垃圾桶",
       book_type: 'TRASH',
       book_order: 999999,
-      create_id: user_id,
-      update_id: user_id
+      creater: user_id,
+      updater: user_id
     })
     return books.create(booksData)
   }
@@ -61,11 +57,32 @@ class Book extends Base {
       throw new Error("用户登录后才能进行此操作")
     }
     // 查询当前文集,当前用户下博客,不查询content字段(太长)
-    let blogsData = await blogs.find({books_id: req.params.id, create_id: req.session.user_id}, {content: 0})
+    let blogsData = await blogs.find({book: req.params.id, creater: req.session.user_id}, {content: 0})
     res.send(this.succ('', blogsData))
   }
+  /**
+   * 添加book。
+   */
   async addBook (req, res, next) {
-    
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error("用户登录后才能进行此操作")
+    }
+    // 获得min order -1
+    let minBook = await books.findOne({}).sort({"book_order": 1}).limit(1)
+    let order = minBook.book_order - 1
+    let { session: {user_id}, body: {book_name} } = req
+    let booksData = {
+      book_name: book_name,
+      book_type: 'BOOK',
+      book_order: order,
+      creater: user_id,
+      updater: user_id
+    }
+    booksData = await books.create(booksData)
+    res.send(this.succ('', booksData))
+  }
+  async reorder (req, res, next) {
+
   }
   async getBookRename (req, res, next) {
     

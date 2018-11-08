@@ -49,22 +49,22 @@ class Blog extends base{
     if (title) 
       { query.title = title }
     if (user_id) 
-      { query.user_id = user_id }
+      { query.user = user_id }
     if (tag_id) 
-      { query.tag_id = tag_id }
+      { query.tag = tag_id }
     if (update_time) 
       { query.update_time = update_time }
     if (blog_type) 
       { query.blog_type = blog_type }
-    if (last_update_time) 
+    if (last_update_time) // 这里需要调整。
       { query.last_update_time = last_update_time }
     // TODO 需要改成已发布。
     query.blog_status = 'DRAFT'
-    let data = await blogs.find(query).populate({path: 'user_id', model: users, select: 'nick_name user_avatar' }).sort({'update_time': -1}).limit(10)
-
+    let data = await blogs.find(query).populate({path: 'user', model: users, select: 'nick_name user_avatar' }).sort({'update_time': -1}).limit(10)
+    console.log(data)
     res.send(this.succ('', data.map((e, index, arr) => {
       // 使用lodash中pick进行field过滤
-      let ele = _.pick(e, ['id', 'blog_type', 'title', 'blog_img', 'nick_name', 'update_time', 'content', 'tags'])
+      let ele = _.pick(e, ['_id', 'blog_type', 'title', 'blog_img', 'user', 'update_time', 'content', 'tags'])
       // 对field的值进行操作
       // 对content内容进行截断
       if (ele.content) {
@@ -81,7 +81,7 @@ class Blog extends base{
     if (!req.params.id) {
       throw new Error("参数错误")
     }
-    let blog = await blogs.findOne({_id: req.params.id})
+    let blog = await blogs.findOne({_id: req.params.id}).populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
     if (!blog) {
       throw new Error("该博客不存在")
     }
@@ -89,16 +89,14 @@ class Blog extends base{
   }
   async addBlog (req, res, next) {
     let data = {
-      id: null,
-      user_id: req.session.user_id,
+      user: req.session.user_id,
       title: req.body.title,
-      books_id: req.body.books_id,
+      book: req.body.books_id,
       blog_order: req.body.blog_order
     }
     // TODO data中的字段都是必填的.
-    data.create_id = data.user_id
-    data.update_id = data.user_id
-    data.id = await this.getId('blogs')
+    data.creater = data.user
+    data.updater = data.user
     let blog = await blogs.create(data)
     res.send(this.succ('新增博客', blog))
   }
@@ -107,7 +105,7 @@ class Blog extends base{
       blog_img: req.body.blog_img,
       title: req.body.title,
       content: req.body.content,
-      update_id: req.session.user_id,
+      updater: req.session.user_id,
       update_time: Date.now()
     }
     // TODO data对象校验

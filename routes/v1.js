@@ -25,7 +25,6 @@ router.get('/', async function(req, res, next) {
 });
 
 // common请求URL
-router.post('/seq', new Base().getSeq)
 router.post('/images', new Base().addImages)
 
 // 博客请求URL
@@ -59,6 +58,7 @@ router.get('/books', book.getBooks)
 router.get('/books/:id/blogs', book.getBookBlogs)
 router.post('/books', book.addBook)
 router.patch('/books/:id/rename', book.getBookRename)
+router.patch('/books/:id/reorder', blog.reorder)
 router.delete('/books/:id', book.deleteBook)
 
 // 专栏请求URL

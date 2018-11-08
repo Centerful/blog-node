@@ -6,10 +6,8 @@ const config = require('config-lite')(__dirname)
 import formidable from 'formidable'
 import fs from 'fs'
 
-class Base extends Sequence{
+class Base{
   constructor(){
-    super()
-    this.getSeq = this.getSeq.bind(this)
     this.addImages = this.addImages.bind(this)
     this.guid = this.guid.bind(this)
     this.md5 = this.md5.bind(this)
@@ -20,10 +18,6 @@ class Base extends Sequence{
     this.dcopy = this.dcopy.bind(this)
     this.ccopy = this.ccopy.bind(this)
     this.accopy = this.accopy.bind(this)
-  }
-  async getSeq (req, res, next) {
-    let id = await this.getId(req.params.type)
-    res.send(this.succ('', {id: id}))
   }
   /**
    * 添加图片
@@ -40,7 +34,7 @@ class Base extends Sequence{
       let file = fs.readFileSync(files.file.path)
       let fileName = this.md5(file) + files.file.name.substring(files.file.name.lastIndexOf('.'))
       fs.writeFileSync(`public/images/${fileName}`, file)
-      res.send(this.succ('', {path: `public/images/${fileName}`}))
+      res.send(this.succ('', {path: `http://localhost:3000/public/images/${fileName}`}))
     })
   }
   guid () {

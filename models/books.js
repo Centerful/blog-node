@@ -6,13 +6,12 @@ import Sequence from '../controller/common/sequence'
 const Schema = mongoose.Schema
 
 const booksModel = new Schema ({
-  id: Number, // 主键
   book_name: String, // 文集名称
   book_type: String, // BOOK,TRASH
   book_order: Number, // 排序序号
-  create_id: { type: Schema.Types.ObjectId, ref: 'users' }, // 创建人
+  creater: { type: Schema.Types.ObjectId, ref: 'users' }, // 创建人
   create_time: {type: Date, default: Date.now}, // 创建时间
-  update_id: { type: Schema.Types.ObjectId, ref: 'users' }, // 修改人(修改人最开始是创建人)
+  updater: { type: Schema.Types.ObjectId, ref: 'users' }, // 修改人(修改人最开始是创建人)
   update_time: {type: Date, default: Date.now}, // 修改时间
   status: {type: Number, default: 1} // 数据状态（1.正常，0.失效）
 })
