@@ -1,6 +1,6 @@
 export default [
   {
-    id: 1,
+    _id: 1,
     blogs: [
       {
         blogID: 9527,
@@ -81,7 +81,7 @@ export default [
     ]
   },
   {
-    id: 2,
+    _id: 2,
     blogs: [
       {
         blogID: 9531,

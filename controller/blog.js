@@ -1,7 +1,9 @@
 'use strict'
 
+import _ from 'lodash'
 import base from './common/base'
 import blogs from '../models/blogs'
+import users from '../models/users'
 import blogsData from '../models/mock/blogs-data'
 import blogsDetailData from '../models/mock/blogs-detail-data'
 
@@ -32,16 +34,45 @@ class Blog extends base{
     this.deleteTrash = this.deleteTrash.bind(this)
   }
   async getBlogs (req, res, next) {
-    let data = blogsData;
-    if (req.query.id) {
-      data = data.find((e) => {
-        if (e.blogID === parseInt(req.query.id)) {
-          return e
-        }
-      })
-      data = [data]
-    }
-    res.send(data);
+    // 每次只查询10条数据。
+    // 查询参数定义.根据用户、某一天、某个tag、博客类型（HOT，NEW，REPUBLISH等）
+    // TODO 查询的后期优化：根据用户关注的tag，以及关注作者生成推送流。这应该有个算法。
+    let { // 对象解构
+      title,
+      user_id,
+      tag_id,
+      update_time,
+      blog_type,
+      last_update_time // 最后一个博客的更新时间
+    } = req.query
+    let query = {}
+    if (title) 
+      { query.title = title }
+    if (user_id) 
+      { query.user_id = user_id }
+    if (tag_id) 
+      { query.tag_id = tag_id }
+    if (update_time) 
+      { query.update_time = update_time }
+    if (blog_type) 
+      { query.blog_type = blog_type }
+    if (last_update_time) 
+      { query.last_update_time = last_update_time }
+    // TODO 需要改成已发布。
+    query.blog_status = 'DRAFT'
+    let data = await blogs.find(query).populate({path: 'user_id', model: users, select: 'nick_name user_avatar' }).sort({'update_time': -1}).limit(10)
+
+    res.send(this.succ('', data.map((e, index, arr) => {
+      // 使用lodash中pick进行field过滤
+      let ele = _.pick(e, ['id', 'blog_type', 'title', 'blog_img', 'nick_name', 'update_time', 'content', 'tags'])
+      // 对field的值进行操作
+      // 对content内容进行截断
+      if (ele.content) {
+        ele.content = ele.content.substring(0, 200)
+      }
+      // 返回对象
+      return ele
+    })))
   }
   async getBlogById (req, res, next) {
     if (!req.session.user_id || req.session.visitor) {
@@ -50,7 +81,7 @@ class Blog extends base{
     if (!req.params.id) {
       throw new Error("参数错误")
     }
-    let blog = await blogs.findOne({id: req.params.id})
+    let blog = await blogs.findOne({_id: req.params.id})
     if (!blog) {
       throw new Error("该博客不存在")
     }
@@ -80,7 +111,7 @@ class Blog extends base{
       update_time: Date.now()
     }
     // TODO data对象校验
-    await blogs.updateOne({id: req.body.id}, data)
+    await blogs.updateOne({_id: req.body._id}, data)
     res.send(this.succ('更新博客'))
   }
   async deleteToTrash (req, res, next) {

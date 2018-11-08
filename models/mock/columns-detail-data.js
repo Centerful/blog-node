@@ -1,6 +1,6 @@
 export default [
   {
-    id: 1,
+    _id: 1,
     name: '霍格沃兹研究会',
     img: '/static/img/hogwarts.jpg',
     status: 'open',
@@ -11,21 +11,21 @@ export default [
     blogNumber: 21,
     tags: [
       {
-        id: 1,
+        _id: 1,
         name: '哈利·波特'
       },
       {
-        id: 2,
+        _id: 2,
         name: '赫敏·格兰杰'
       },
       {
-        id: 3,
+        _id: 3,
         name: '罗恩·韦斯莱'
       }
     ]
   },
   {
-    id: 2,
+    _id: 2,
     name: '霍格沃兹研究会',
     img: '/static/img/hogwarts.jpg',
     status: 'open',
@@ -36,15 +36,15 @@ export default [
     blogNumber: 21,
     tags: [
       {
-        id: 1,
+        _id: 1,
         name: '哈利·波特'
       },
       {
-        id: 2,
+        _id: 2,
         name: '赫敏·格兰杰'
       },
       {
-        id: 3,
+        _id: 3,
         name: '罗恩·韦斯莱'
       }
     ]

@@ -32,7 +32,7 @@ class Login extends Base {
     }
     // 登录成功,
     // 将用户信息保存到session中
-    req.session.user_id = user.id
+    req.session.user_id = user._id
     // TODO 插入登录历史记录
     res.send(this.succ('登录成功'))
   }
@@ -55,7 +55,7 @@ class Login extends Base {
       user_avatar: user_avatar
     }
     await users.create(user)
-    req.session.user_id = user.id
+    req.session.user_id = user._id
     req.session.visitor = true
     res.send(this.succ('游客登录成功'))
   }

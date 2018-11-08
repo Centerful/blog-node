@@ -23,10 +23,13 @@ class Base extends Sequence{
   }
   async getSeq (req, res, next) {
     let id = await this.getId(req.params.type)
-    res.send(this.succ({id: id}))
+    res.send(this.succ('', {id: id}))
   }
   /**
    * 添加图片
+   * TODO 本地output图片时，先判断图片是否存在，存在则直接return路径
+   * 将图片缩放成几种不同大小的格式，缩放的规则配置在config文件中。
+   * 命名规范：guid + width_height + type
    */
   async addImages (req, res, next) {
     let data = new formidable.IncomingForm()

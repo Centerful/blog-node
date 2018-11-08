@@ -12,7 +12,7 @@ class Column {
   async getColumnById (req, res, next) {
     if (req.params.id) {
       let data = columnsDetailData.find((e) => {
-        if (e.id === parseInt(req.params.id)) {
+        if (e._id === parseInt(req.params.id)) {
           return e
         }
       })
@@ -24,7 +24,7 @@ class Column {
   async getColumnBlogs (req, res, next) {
     if (req.params.id) {
       let data = columnsBlogsData.find((e) => {
-        if (e.id === parseInt(req.params.id)) {
+        if (e._id === parseInt(req.params.id)) {
           return e
         }
       })

@@ -1,6 +1,6 @@
 export default [
   {
-    id: 1,
+    _id: 1,
     name: '霍格沃兹研究会',
     img: '/static/img/hogwarts.jpg',
     status: 'open',
@@ -10,13 +10,13 @@ export default [
     blogNumber: 21,
     tags: [
       {
-        id: 1,
+        _id: 1,
         name: '哈利·波特'
       }
     ]
   },
   {
-    id: 2,
+    _id: 2,
     name: '麻瓜专研社',
     img: '/static/img/hogwarts.jpg',
     status: 'close',
@@ -26,7 +26,7 @@ export default [
     blogNumber: 15,
     tags: [
       {
-        id: 1,
+        _id: 1,
         name: '达力·德思礼'
       }
     ]

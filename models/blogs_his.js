@@ -6,7 +6,7 @@ const Schema = mongoose.Schema
 
 const blogsHisModel = new Schema ({
   id: Number, // 主键
-  blog_id: Number, // 博客表id
+  blog_id: { type: Schema.Types.ObjectId, ref: 'blogs' }, // 博客表id
   blog_img: String, // 题图地址
   title: String, // 博客标题
   content: String, // 博客内容

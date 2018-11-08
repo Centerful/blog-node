@@ -22,12 +22,13 @@ class Book extends Base {
     if (!req.session.user_id || req.session.visitor) {
       throw new Error("用户登录后才能进行此操作")
     }
-    let booksData = await books.find({ user_id: req.session.user_id })
+    let booksData = await books.find({ create_id: req.session.user_id })
     // 该用户没有books,进行初始化.
     if (!booksData || booksData.length == 0) {
       booksData = await this.initData(req.session.user_id)
       console.log("booksData: " + JSON.stringify(booksData))
     }
+    // 将_id值替换到id上。
     res.send(this.succ('', booksData))
   }
   /**
@@ -40,7 +41,6 @@ class Book extends Base {
       id: id,
       book_name: '文集',
       book_type: 'BOOK',
-      user_id: user_id,
       book_order: 1,
       create_id: user_id,
       update_id: user_id
@@ -50,7 +50,6 @@ class Book extends Base {
       id: id,
       book_name: "垃圾桶",
       book_type: 'TRASH',
-      user_id: user_id,
       book_order: 999999,
       create_id: user_id,
       update_id: user_id
@@ -62,8 +61,7 @@ class Book extends Base {
       throw new Error("用户登录后才能进行此操作")
     }
     // 查询当前文集,当前用户下博客,不查询content字段(太长)
-    let blogsData = await blogs.find({books_id: req.params.id, user_id: req.session.user_id}, {content: 0})
-    console.log(blogsData)
+    let blogsData = await blogs.find({books_id: req.params.id, create_id: req.session.user_id}, {content: 0})
     res.send(this.succ('', blogsData))
   }
   async addBook (req, res, next) {

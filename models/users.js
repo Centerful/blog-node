@@ -21,7 +21,7 @@ const usersModel = new Schema ({
   resume: String, // 简历
   residence: String, // 居住地
   business: String, // 所在行业
-  auth_id: Number, // 权限模板ID
+  auth_id: { type: Schema.Types.ObjectId, ref: 'authority' }, // 权限模板ID
   create_time: {type: Date, default: Date.now}, // 创建时间
   update_time: {type: Date, default: Date.now}, // 修改时间
   status: {type: Number, default: 1} // 数据状态（1.正常，0.失效）
