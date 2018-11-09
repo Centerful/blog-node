@@ -46,7 +46,7 @@ class Book extends Base {
     booksData.push({
       book_name: "垃圾桶",
       book_type: 'TRASH',
-      book_order: 999999,
+      book_order: 9999999,
       creater: user_id,
       updater: user_id
     })
@@ -56,8 +56,18 @@ class Book extends Base {
     if (!req.session.user_id || req.session.visitor) {
       throw new Error("用户登录后才能进行此操作")
     }
-    // 查询当前文集,当前用户下博客,不查询content字段(太长)
-    let blogsData = await blogs.find({book: req.params.id, creater: req.session.user_id}, {content: 0})
+    let bookData = await books.findOne({_id: req.params.id})
+    let query = { creater: req.session.user_id }
+    // 判断是否是trash类型
+    if (bookData.book_type == 'TRASH') {
+      // trash 类型查询已删除的博客
+      query.blog_status = 'DELETE'
+    } else {
+      // 查询当前文集,当前用户下博客,不查询content字段(太长)  
+      query.book = req.params.id,
+      query.blog_status = {'$ne': 'DELETE'}
+    }
+    let blogsData = await blogs.find(query, {content: 0})
     res.send(this.succ('', blogsData))
   }
   /**
@@ -68,8 +78,8 @@ class Book extends Base {
       throw new Error("用户登录后才能进行此操作")
     }
     // 获得min order -1
-    let minBook = await books.findOne({}).sort({"book_order": 1}).limit(1)
-    let order = minBook.book_order - 1
+    let maxBook = await books.findOne({}).sort({"book_order": -1}).skip(1).limit(1)
+    let order = maxBook.book_order + 1
     let { session: {user_id}, body: {book_name} } = req
     let booksData = {
       book_name: book_name,
