@@ -12,7 +12,7 @@ class Book extends Base {
     this.initData = this.initData.bind(this)
     this.getBookBlogs = this.getBookBlogs.bind(this)
     this.addBook = this.addBook.bind(this)
-    this.getBookRename = this.getBookRename.bind(this)
+    this.bookRename = this.bookRename.bind(this)
     this.deleteBook = this.deleteBook.bind(this)
   }
   /**
@@ -20,13 +20,13 @@ class Book extends Base {
    */
   async getBooks (req, res, next) {
     if (!req.session.user_id || req.session.visitor) {
-      throw new Error("用户登录后才能进行此操作")
+      throw new Error('用户登录后才能进行此操作')
     }
-    let booksData = await books.find({ creater: req.session.user_id })
+    let booksData = await books.find({ creater: req.session.user_id, status: 1 })
     // 该用户没有books,进行初始化.
     if (!booksData || booksData.length == 0) {
       booksData = await this.initData(req.session.user_id)
-      console.log("booksData: " + JSON.stringify(booksData))
+      console.log('booksData: ' + JSON.stringify(booksData))
     }
     // 将_id值替换到id上。
     res.send(this.succ('', booksData))
@@ -44,7 +44,7 @@ class Book extends Base {
       updater: user_id
     })
     booksData.push({
-      book_name: "垃圾桶",
+      book_name: '垃圾桶',
       book_type: 'TRASH',
       book_order: 9999999,
       creater: user_id,
@@ -54,10 +54,10 @@ class Book extends Base {
   }
   async getBookBlogs (req, res, next) {
     if (!req.session.user_id || req.session.visitor) {
-      throw new Error("用户登录后才能进行此操作")
+      throw new Error('用户登录后才能进行此操作')
     }
-    let bookData = await books.findOne({_id: req.params.id})
-    let query = { creater: req.session.user_id }
+    let bookData = await books.findOne({_id: req.params.id, status: 1})
+    let query = { creater: req.session.user_id, status: 1 }
     // 判断是否是trash类型
     if (bookData.book_type == 'TRASH') {
       // trash 类型查询已删除的博客
@@ -75,10 +75,10 @@ class Book extends Base {
    */
   async addBook (req, res, next) {
     if (!req.session.user_id || req.session.visitor) {
-      throw new Error("用户登录后才能进行此操作")
+      throw new Error('用户登录后才能进行此操作')
     }
     // 获得min order -1
-    let maxBook = await books.findOne({}).sort({"book_order": -1}).skip(1).limit(1)
+    let maxBook = await books.findOne({status: 1}).sort({'book_order': -1}).skip(1).limit(1)
     let order = maxBook.book_order + 1
     let { session: {user_id}, body: {book_name} } = req
     let booksData = {
@@ -94,11 +94,32 @@ class Book extends Base {
   async reorder (req, res, next) {
 
   }
-  async getBookRename (req, res, next) {
-    
+  // 文集名称修改
+  async bookRename (req, res, next) {
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error('用户登录后才能进行此操作')
+    }
+    // TODO 入参需要非空校验。
+    let query = {
+      _id: req.params._id,
+      creater: req.session.user_id
+    }
+    await books.updateOne(query, {book_name: req.query.book_name})
+    res.send(this.succ('修改完成'))
   }
+  // 删除文集
   async deleteBook (req, res, next) {
-    
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error('用户登录后才能进行此操作')
+    }
+    // 文集中没有文章才可以删除
+    let blogList = blogs.find({book: req.params._id})
+    if (!blogList || blogList.length == 0) {
+      await books.updateOne({_id: req.params._id, creater: req.session.user_id}, {status: 0})
+      res.send(this.succ('删除完成'))
+    } else {
+      throw new Error('文集中存在博客无法删除')
+    }
   }
 }
 

@@ -21,7 +21,7 @@ class Blog extends base{
     this.addBlogComment = this.addBlogComment.bind(this)
     this.deleteBlogComment = this.deleteBlogComment.bind(this)
     this.pulish = this.pulish.bind(this)
-    this.deleteBlogById = this.deleteBlogById.bind(this)
+    this.cleanBlog = this.cleanBlog.bind(this)
     this.reorder = this.reorder.bind(this)
     this.addThumb = this.addThumb.bind(this)
     this.deleteThumb = this.deleteThumb.bind(this)
@@ -61,6 +61,7 @@ class Blog extends base{
       { query.last_update_time = last_update_time }
     // TODO 需要改成已发布。
     query.blog_status = 'DRAFT'
+    query.status = 1
     let data = await blogs.find(query).populate({path: 'user', model: users, select: 'nick_name user_avatar' }).sort({'update_time': -1}).limit(10)
     console.log(data)
     res.send(this.succ('', data.map((e, index, arr) => {
@@ -77,14 +78,14 @@ class Blog extends base{
   }
   async getBlogById (req, res, next) {
     if (!req.session.user_id || req.session.visitor) {
-      throw new Error("用户登录后才能进行此操作")
+      throw new Error('用户登录后才能进行此操作')
     }
     if (!req.params.id) {
-      throw new Error("参数错误")
+      throw new Error('参数错误')
     }
     let blog = await blogs.findOne({_id: req.params.id}).populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
     if (!blog) {
-      throw new Error("该博客不存在")
+      throw new Error('该博客不存在')
     }
     res.send(this.succ('', blog));
   }
@@ -110,11 +111,44 @@ class Blog extends base{
       update_time: Date.now()
     }
     // TODO data对象校验
-    await blogs.updateOne({_id: req.body._id}, data)
+    await blogs.updateOne({_id: req.body._id, creater: req.session.user_id}, data)
     res.send(this.succ('更新博客'))
   }
+  /**
+   * 将博客移动到垃圾箱中
+   */
   async deleteToTrash (req, res, next) {
-    
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error('用户登录后才能进行此操作')
+    }
+    if (!req.params.id) {
+      throw new Error('参数错误')
+    }
+    // 判断该文集是否 publish TODO
+    let blog = await blogs.findOne({_id: req.params.id, creater: req.session.user_id})
+    if (!blog) {
+      throw new Error('该博客不存在！')
+    }
+    if (blog.blog_status == 'PUBLISH') {
+      throw new Error('取消博客发布后才能删除！')
+    }
+    // 查询垃圾桶中最大order
+    let query = {
+      creater: req.session.user_id, 
+      blog_status: 'DELETE',
+      status: 1
+    }
+    // 查询最大序号
+    let maxBlogs = await blogs.findOne(query).sort({blog_order: -1}).skip(1).limit(1)
+    let maxOrder = 1
+    if (maxBlogs) {
+      maxOrder = maxBlogs.blog_order + 1
+    }
+    // 查询垃圾桶的id
+    let trash = await books.findOne({book_type: 'TRASH', creater: req.session.user_id, status: 1})
+    // 将博客状态修改为DELETE,blog_order修改为DELETE中最大的，原books的id不要修改。到时候可以恢复回去(界面下拉框中默认选项)
+    await blogs.updateOne({_id: req.params.id, creater: req.session.user_id}, {blog_status: 'DELETE', blog_order: maxOrder, book: trash._id})
+    res.send(this.succ('博客已移动到垃圾桶'))
   }
   async getBlogExtends (req, res, next) {
     
@@ -132,31 +166,17 @@ class Blog extends base{
     
   }
   /**
-   * 删除博客到垃圾箱,添加字段 TODO 保存删除前的文集id。
+   * 将博客从垃圾桶中删除。status = 0
    */
-  async deleteBlogById (req, res, next) {
+  async cleanBlog (req, res, next) {
     if (!req.session.user_id || req.session.visitor) {
-      throw new Error("用户登录后才能进行此操作")
+      throw new Error('用户登录后才能进行此操作')
     }
     if (!req.params.id) {
-      throw new Error("参数错误")
+      throw new Error('参数错误')
     }
-    
-    // 查询垃圾桶中最大order
-    let query = {
-      creater: req.session.user_id, 
-      blog_status: 'DELETE'
-    }
-    let maxBlogs = await blogs.findOne(query).sort({blog_order: -1}).skip(1).limit(1)
-    let maxOrder = 1
-    if (maxBlogs) {
-      maxOrder = maxBlogs.blog_order + 1
-    }
-    // 查询垃圾桶的id
-    let trash = books.findOne({book_type: 'TRASH', creater: req.session.user_id})
-    // 将博客状态修改为DELETE,blog_order修改为DELETE中最大的，原books的id不要修改。到时候可以恢复回去(界面下拉框中默认选项)
-    let blogData = await blogs.updateOne({_id: req.params.id}, {blog_status: 'DELETE', blog_order: maxOrder, book: trash._id})
-    res.send(this.succ('删除成功', blogData))
+    await blogs.updateOne({_id: req.params.id, creater: req.session.user_id}, {status: '0'})
+    res.send(this.succ('删除成功'))
   }
   async reorder (req, res, next) {
     

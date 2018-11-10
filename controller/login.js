@@ -23,7 +23,7 @@ class Login extends Base {
     if (!password) {
       throw new Error('账号不能为空')
     }
-    let user = await users.findOne({user_name: user_name })
+    let user = await users.findOne({user_name: user_name, status: 1 })
     if (!user) {
       throw new Error('账户或密码错误')
     }
