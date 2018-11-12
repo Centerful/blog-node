@@ -22,7 +22,13 @@ class Book extends Base {
     if (!req.session.user_id || req.session.visitor) {
       throw new Error('用户登录后才能进行此操作')
     }
-    let booksData = await books.find({ creater: req.session.user_id, status: 1 })
+    let query = {}
+    query.creater = req.session.user_id
+    query.status = 1
+    if (req.query.only_book) {
+      query.book_type = 'BOOK'
+    }
+    let booksData = await books.find(query)
     // 该用户没有books,进行初始化.
     if (!booksData || booksData.length == 0) {
       booksData = await this.initData(req.session.user_id)
@@ -56,7 +62,7 @@ class Book extends Base {
     if (!req.session.user_id || req.session.visitor) {
       throw new Error('用户登录后才能进行此操作')
     }
-    let bookData = await books.findOne({_id: req.params.id, status: 1})
+    let bookData = await books.findOne({_id: req.params.id, status: 1, creater: req.session.user_id})
     let query = { creater: req.session.user_id, status: 1 }
     // 判断是否是trash类型
     if (bookData.book_type == 'TRASH') {
@@ -101,10 +107,10 @@ class Book extends Base {
     }
     // TODO 入参需要非空校验。
     let query = {
-      _id: req.params._id,
+      _id: req.body.book_id,
       creater: req.session.user_id
     }
-    await books.updateOne(query, {book_name: req.query.book_name})
+    await books.updateOne(query, {book_name: req.body.book_name})
     res.send(this.succ('修改完成'))
   }
   // 删除文集

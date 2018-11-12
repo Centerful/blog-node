@@ -50,7 +50,7 @@ app.all('*', (req, res, next) => {
    */
   res.header("Access-Control-Allow-Origin", req.headers.Origin || req.headers.origin)
   res.header("Access-Control-Allow-Headers", "content-type")
-  res.header("Access-Control-Allow-Methods", "DELETE,PUT,POST,GET,OPTIONS")
+  res.header("Access-Control-Allow-Methods", "DELETE,PUT,POST,PATCH,GET,OPTIONS")
   res.header("Access-Control-Allow-Credentials", true) //可以带cookies
   if (req.method == 'OPTIONS') {
       res.sendStatus(200)

@@ -193,8 +193,24 @@ class Blog extends base{
   async getBlogHistory (req, res, next) {
     
   }
+  // 将博客恢复
   async reversion (req, res, next) {
-    
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error('用户登录后才能进行此操作')
+    }
+    let query = {_id: req.body.book_id, status: 1, creater: req.session.user_id}
+    let bookData = await books.findOne(query)
+    if (bookData == 'TRASH') {
+      throw new Error('不能恢复至垃圾桶中')
+    }
+    // 查询最大序号
+    let maxBlogs = await blogs.findOne(query).sort({blog_order: -1}).skip(1).limit(1)
+    let maxOrder = 1
+    if (maxBlogs) {
+      maxOrder = maxBlogs.blog_order + 1
+    }
+    await blogs.updateOne({_id: req.body.blog_id, creater: req.session.user_id}, {blog_status: 'DRAFT', blog_order: maxOrder, book: req.body.book_id})
+    res.send(this.succ('恢复完成', {blog_order: maxOrder}))
   }
   async getTrashs (req, res, next) {
     
