@@ -119,9 +119,9 @@ class Book extends Base {
       throw new Error('用户登录后才能进行此操作')
     }
     // 文集中没有文章才可以删除
-    let blogList = blogs.find({book: req.params._id})
+    let blogList = await blogs.find({book: req.params.id, status: 1})
     if (!blogList || blogList.length == 0) {
-      await books.updateOne({_id: req.params._id, creater: req.session.user_id}, {status: 0})
+      await books.updateOne({_id: req.params.id, creater: req.session.user_id}, {status: 0})
       res.send(this.succ('删除完成'))
     } else {
       throw new Error('文集中存在博客无法删除')

@@ -3,6 +3,7 @@
 import _ from 'lodash'
 import base from './common/base'
 import blogs from '../models/blogs'
+import blogsHis from '../models/blogs_his'
 import books from '../models/books'
 import users from '../models/users'
 import blogsData from '../models/mock/blogs-data'
@@ -96,10 +97,18 @@ class Blog extends base{
       book: req.body.books_id,
       blog_order: req.body.blog_order
     }
-    // TODO data中的字段都是必填的.
+    // data中的字段都是必填的.
     data.creater = data.user
     data.updater = data.user
     let blog = await blogs.create(data)
+    // 插入历史数据
+    let his = {
+      blog: blog._id,
+      blog_img: blog.blog_img,
+      title: blog.title,
+      content: blog.content
+    }
+    let his = await blogsHis.create(his)
     res.send(this.succ('新增博客', blog))
   }
   async updateBlog (req, res, next) {
@@ -110,8 +119,17 @@ class Blog extends base{
       updater: req.session.user_id,
       update_time: Date.now()
     }
-    // TODO data对象校验
+    // 只能更新属于自己的博客
     await blogs.updateOne({_id: req.body._id, creater: req.session.user_id}, data)
+
+    // 插入历史记录
+    let his = {
+      blog: req.body._id,
+      blog_img: req.body.blog_img,
+      title: req.body.title,
+      content: req.body.content
+    }
+    let his = await blogsHis.create(his)
     res.send(this.succ('更新博客'))
   }
   /**
