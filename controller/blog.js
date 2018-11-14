@@ -108,7 +108,7 @@ class Blog extends base{
       title: blog.title,
       content: blog.content
     }
-    let his = await blogsHis.create(his)
+    await blogsHis.create(his)
     res.send(this.succ('新增博客', blog))
   }
   async updateBlog (req, res, next) {
@@ -129,7 +129,7 @@ class Blog extends base{
       title: req.body.title,
       content: req.body.content
     }
-    let his = await blogsHis.create(his)
+    await blogsHis.create(his)
     res.send(this.succ('更新博客'))
   }
   /**
