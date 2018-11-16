@@ -34,6 +34,8 @@ class Blog extends base{
     this.updateTrash = this.updateTrash.bind(this)
     this.restore = this.restore.bind(this)
     this.deleteTrash = this.deleteTrash.bind(this)
+    this._convertBlog = this._convertBlog.bind(this)
+    this._converPublish = this._converPublish.bind(this)
   }
   async getBlogs (req, res, next) {
     // 每次只查询10条数据。
@@ -49,25 +51,25 @@ class Blog extends base{
     } = req.query
     let query = {}
     if (title) 
-      { query.title = title }
+      { query["publish.title"] = title }
     if (user_id) 
-      { query.user = user_id }
+      { query["user"] = user_id }
     if (tag_id) 
-      { query.tag = tag_id }
+      { query["publish.tags"] = tag_id }
     if (update_time) 
-      { query.update_time = update_time }
+      { query["publish.update_time"] = update_time }
     if (blog_type) 
-      { query.blog_type = blog_type }
+      { query["publish.blog_type"] = blog_type }
     if (last_update_time) // 这里需要调整。
-      { query.last_update_time = last_update_time }
+      { query["publish.last_update_time"] = last_update_time }
     // TODO 需要改成已发布。
-    query.blog_status = 'DRAFT'
+    query.blog_status = 'PUBLISH'
     query.status = 1
-    let data = await blogs.find(query).populate({path: 'user', model: users, select: 'nick_name user_avatar' }).sort({'update_time': -1}).limit(10)
+    let data = await blogs.find(query).populate({path: 'user', model: users, select: 'nick_name user_avatar' }).sort({'publish.publish_time': -1}).limit(10)
     console.log(data)
     res.send(this.succ('', data.map((e, index, arr) => {
       // 使用lodash中pick进行field过滤
-      let ele = _.pick(e, ['_id', 'blog_type', 'title', 'blog_img', 'user', 'update_time', 'content', 'tags'])
+      let ele = _.pick(e, ['_id', 'publish.blog_type', 'publish.title', 'publish.blog_img', 'user', 'update_time', 'publish.content', 'publish.tags'])
       // 对field的值进行操作
       // 对content内容进行截断
       if (ele.content) {
@@ -88,46 +90,47 @@ class Blog extends base{
     if (!blog) {
       throw new Error('该博客不存在')
     }
-    res.send(this.succ('', blog));
+    res.send(this.succ('', this._convertBlog(blog)));
   }
   async addBlog (req, res, next) {
-    let data = {
+    // 新增write数据。
+    let blog_write = {
       user: req.session.user_id,
+      'write.title': req.body.title,
+      'write.book': req.body.books_id,
+      'write.blog_order': req.body.blog_order
+    }
+    blog_write = await blogs.create(blog_write)
+
+    // 将blog数据插入his中。
+    let blog_his = {
+      blog: blog_write._id,
       title: req.body.title,
-      book: req.body.books_id,
-      blog_order: req.body.blog_order
+      operation_status: 'ADD'
     }
-    // data中的字段都是必填的.
-    data.creater = data.user
-    data.updater = data.user
-    let blog = await blogs.create(data)
-    // 插入历史数据
-    let his = {
-      blog: blog._id,
-      blog_img: blog.blog_img,
-      title: blog.title,
-      content: blog.content
-    }
-    await blogsHis.create(his)
-    res.send(this.succ('新增博客', blog))
+    await blogsHis.create(blog_his)
+    // 将blog的write对象中的字段与blog的普通字段融合。merge中便后对象的同名字段会覆盖前面的。
+    res.send(this.succ('新增博客', this._convertBlog(blog_write)))
   }
   async updateBlog (req, res, next) {
     let data = {
-      blog_img: req.body.blog_img,
-      title: req.body.title,
-      content: req.body.content,
-      updater: req.session.user_id,
-      update_time: Date.now()
+      "write.blog_img": req.body.blog_img,
+      "write.title": req.body.title,
+      "write.content": req.body.content,
+      "write.write_user": req.session.user_id,
+      "write.write_time": Date.now()
     }
+
     // 只能更新属于自己的博客
-    await blogs.updateOne({_id: req.body._id, creater: req.session.user_id}, data)
+    await blogs.updateOne({_id: req.body._id, user: req.session.user_id}, {$set: data})
 
     // 插入历史记录
     let his = {
       blog: req.body._id,
       blog_img: req.body.blog_img,
       title: req.body.title,
-      content: req.body.content
+      content: req.body.content,
+      operation_status: 'UPDATE'
     }
     await blogsHis.create(his)
     res.send(this.succ('更新博客'))
@@ -143,7 +146,7 @@ class Blog extends base{
       throw new Error('参数错误')
     }
     // 判断该文集是否 publish TODO
-    let blog = await blogs.findOne({_id: req.params.id, creater: req.session.user_id})
+    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id})
     if (!blog) {
       throw new Error('该博客不存在！')
     }
@@ -152,20 +155,20 @@ class Blog extends base{
     }
     // 查询垃圾桶中最大order
     let query = {
-      creater: req.session.user_id, 
+      user: req.session.user_id, 
       blog_status: 'DELETE',
       status: 1
     }
     // 查询最大序号
-    let maxBlogs = await blogs.findOne(query).sort({blog_order: -1}).skip(1).limit(1)
+    let maxBlogs = await blogs.findOne(query).sort({"write.blog_order": -1}).skip(1).limit(1)
     let maxOrder = 1
     if (maxBlogs) {
-      maxOrder = maxBlogs.blog_order + 1
+      maxOrder = maxBlogs.write.blog_order + 1
     }
     // 查询垃圾桶的id
     let trash = await books.findOne({book_type: 'TRASH', creater: req.session.user_id, status: 1})
     // 将博客状态修改为DELETE,blog_order修改为DELETE中最大的，原books的id不要修改。到时候可以恢复回去(界面下拉框中默认选项)
-    await blogs.updateOne({_id: req.params.id, creater: req.session.user_id}, {blog_status: 'DELETE', blog_order: maxOrder, book: trash._id})
+    await blogs.updateOne({_id: req.params.id, user: req.session.user_id}, {"$set": {blog_status: 'DELETE', "write.blog_order": maxOrder, "write.book": trash._id}})
     res.send(this.succ('博客已移动到垃圾桶'))
   }
   async getBlogExtends (req, res, next) {
@@ -193,7 +196,7 @@ class Blog extends base{
     if (!req.params.id) {
       throw new Error('参数错误')
     }
-    await blogs.updateOne({_id: req.params.id, creater: req.session.user_id}, {status: '0'})
+    await blogs.updateOne({_id: req.params.id, user: req.session.user_id}, {status: '0'})
     res.send(this.succ('删除成功'))
   }
   async reorder (req, res, next) {
@@ -222,12 +225,12 @@ class Blog extends base{
       throw new Error('不能恢复至垃圾桶中')
     }
     // 查询最大序号
-    let maxBlogs = await blogs.findOne(query).sort({blog_order: -1}).skip(1).limit(1)
+    let maxBlogs = await blogs.findOne({book: query._id, status: 1, user: req.session.user_id}).sort({blog_order: -1}).skip(1).limit(1)
     let maxOrder = 1
     if (maxBlogs) {
       maxOrder = maxBlogs.blog_order + 1
     }
-    await blogs.updateOne({_id: req.body.blog_id, creater: req.session.user_id}, {blog_status: 'DRAFT', blog_order: maxOrder, book: req.body.book_id})
+    await blogs.updateOne({_id: req.body.blog_id, user: req.session.user_id}, {"$set": {blog_status: 'DRAFT', "write.blog_order": maxOrder, "write.book": req.body.book_id}})
     res.send(this.succ('恢复完成', {blog_order: maxOrder}))
   }
   async getTrashs (req, res, next) {
@@ -244,6 +247,42 @@ class Blog extends base{
   }
   async deleteTrash (req, res, next) {
     
+  }
+  async getBookBlogs (book_id) {
+    let query = {
+      status: 1,
+      'write.book': book_id
+    }
+    let blog_write = await blogs.find(query, {publish:0})
+    let blog = []
+    blog = blog_write.map((ele) => {
+      return this._convertBlog(ele)
+    })
+    return blog
+  }
+  _convertBlog (blog_write) {
+    return {
+      _id: blog_write._id,
+      user: blog_write.user,
+      blog_status: blog_write.blog_status,
+      status: blog_write.status,
+      book: blog_write.write.book,
+      blog_img: blog_write.write.blog_img,
+      title: blog_write.write.title,
+      content: blog_write.write.content,
+      blog_order: blog_write.write.blog_order,
+      create_time: blog_write.write.create_time,
+      write_user: blog_write.write.write_user,
+      write_time: blog_write.write.write_time
+    }
+  }
+  _converPublish (blog_write) {
+    return {
+      _id: blog_write._id,
+      user: blog_write.user,
+      blog_status: blog_write.blog_status,
+      status: blog_write.status
+    }
   }
 }
 

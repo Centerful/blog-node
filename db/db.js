@@ -13,7 +13,8 @@ function mongoOptions () {
   let options = {
     poolSize: 5,
     reconnectTries: 100,
-    keepAlive: 120
+    keepAlive: 120,
+    useNewUrlParser: true
   }
   return options
 }

@@ -2,6 +2,7 @@
 
 import Base from './common/base'
 import books from '../models/books'
+import blog from './blog'
 import blogs from '../models/blogs'
 import booksData from '../models/mock/books-data'
 
@@ -11,6 +12,7 @@ class Book extends Base {
     this.getBooks = this.getBooks.bind(this)
     this.initData = this.initData.bind(this)
     this.getBookBlogs = this.getBookBlogs.bind(this)
+    this.getBookBlogsOld = this.getBookBlogsOld.bind(this)
     this.addBook = this.addBook.bind(this)
     this.bookRename = this.bookRename.bind(this)
     this.deleteBook = this.deleteBook.bind(this)
@@ -59,6 +61,25 @@ class Book extends Base {
     return books.create(booksData)
   }
   async getBookBlogs (req, res, next) {
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error('用户登录后才能进行此操作')
+    }
+    // let bookData = await books.findOne({_id: req.params.id, status: 1, creater: req.session.user_id})
+    // let query = { creater: req.session.user_id, status: 1 }
+    // // 判断是否是trash类型
+    // if (bookData.book_type == 'TRASH') {
+    //   // trash 类型查询已删除的博客
+    //   query.blog_status = 'DELETE'
+    // } else {
+    //   // 查询当前文集,当前用户下博客,不查询content字段(太长)  
+    //   query.book = req.params.id,
+    //   query.blog_status = {'$ne': 'DELETE'}
+    // }
+    // let blogsData = await blogs.find(query, {content: 0})
+    let blogsData = await blog.getBookBlogs(req.params.id)
+    res.send(this.succ('', blogsData))
+  }
+  async getBookBlogsOld (req, res, next) {
     if (!req.session.user_id || req.session.visitor) {
       throw new Error('用户登录后才能进行此操作')
     }
