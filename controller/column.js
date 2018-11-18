@@ -1,5 +1,6 @@
 'use strict'
 
+import columns from '../models/columns'
 import columnsData from '../models/mock/columns-data'
 import columnsDetailData from '../models/mock/columns-detail-data.js'
 import columnsBlogsData from '../models/mock/columns-blogs-data.js'
@@ -32,6 +33,15 @@ class Column {
     } else {
       // TODO 抛出异常
     }
+  }
+  async _getColumns (user_id) {
+    let data = await columns.find({user: user_id, status: 1})
+    return data.map((e) => {
+      return {
+        _id: data._id,
+        column_name: data.column_name
+      }
+    })
   }
   async addColumn (req, res, next) {
     res.render('index', { title: 'addColumn 页面' })

@@ -1,13 +1,14 @@
 'use strict'
 
 import _ from 'lodash'
-import base from './common/base'
 import blogs from '../models/blogs'
 import blogsHis from '../models/blogs_his'
 import books from '../models/books'
 import users from '../models/users'
-import blogsData from '../models/mock/blogs-data'
-import blogsDetailData from '../models/mock/blogs-detail-data'
+import base from './common/base'
+import constant from './common/constant'
+import tagTopic from './tag_topic'
+import column from './column'
 
 class Blog extends base{
   constructor(){
@@ -21,7 +22,11 @@ class Blog extends base{
     this.getBlogComments = this.getBlogComments.bind(this)
     this.addBlogComment = this.addBlogComment.bind(this)
     this.deleteBlogComment = this.deleteBlogComment.bind(this)
-    this.pulish = this.pulish.bind(this)
+    this.publish = this.publish.bind(this)
+    this.getPublishs = this.getPublishs.bind(this)
+    this.getPublishSummaryById = this.getPublishSummaryById.bind(this)
+    this.getPublishById = this.getPublishById.bind(this)
+    this.cancelPublish = this.cancelPublish.bind(this)
     this.cleanBlog = this.cleanBlog.bind(this)
     this.reorder = this.reorder.bind(this)
     this.addThumb = this.addThumb.bind(this)
@@ -37,7 +42,7 @@ class Blog extends base{
     this._convertBlog = this._convertBlog.bind(this)
     this._converPublish = this._converPublish.bind(this)
   }
-  async getBlogs (req, res, next) {
+  async getPublishs (req, res, next) {
     // 每次只查询10条数据。
     // 查询参数定义.根据用户、某一天、某个tag、博客类型（HOT，NEW，REPUBLISH等）
     // TODO 查询的后期优化：根据用户关注的tag，以及关注作者生成推送流。这应该有个算法。
@@ -62,36 +67,35 @@ class Blog extends base{
       { query["publish.blog_type"] = blog_type }
     if (last_update_time) // 这里需要调整。
       { query["publish.last_update_time"] = last_update_time }
-    // TODO 需要改成已发布。
-    query.blog_status = 'PUBLISH'
+    query.blog_status = constant.blog_status.publish
     query.status = 1
     let data = await blogs.find(query).populate({path: 'user', model: users, select: 'nick_name user_avatar' }).sort({'publish.publish_time': -1}).limit(10)
-    console.log(data)
-    res.send(this.succ('', data.map((e, index, arr) => {
-      // 使用lodash中pick进行field过滤
-      let ele = _.pick(e, ['_id', 'publish.blog_type', 'publish.title', 'publish.blog_img', 'user', 'update_time', 'publish.content', 'publish.tags'])
-      // 对field的值进行操作
-      // 对content内容进行截断
+    let result = data.map((ele) => {
+      let conver = this._converPublish(ele)
       if (ele.content) {
-        ele.content = ele.content.substring(0, 200)
+        conver.content = conver.content.substring(0, 200)
       }
-      // 返回对象
-      return ele
-    })))
+      return conver
+    })
+    res.send(this.succ('', result))
   }
+  async getBlogs (req, res, next) {
+    
+  }
+  /**
+   * 查询博客详细信息
+   */
   async getBlogById (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
-    if (!req.params.id) {
-      throw new Error('参数错误')
-    }
+    this.checkUserAuth(req)
     let blog = await blogs.findOne({_id: req.params.id}).populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
     if (!blog) {
       throw new Error('该博客不存在')
     }
     res.send(this.succ('', this._convertBlog(blog)));
   }
+  /**
+   * 新增博客信息
+   */
   async addBlog (req, res, next) {
     // 新增write数据。
     let blog_write = {
@@ -112,6 +116,9 @@ class Blog extends base{
     // 将blog的write对象中的字段与blog的普通字段融合。merge中便后对象的同名字段会覆盖前面的。
     res.send(this.succ('新增博客', this._convertBlog(blog_write)))
   }
+  /**
+   * 更新博客信息
+   */
   async updateBlog (req, res, next) {
     let data = {
       "write.blog_img": req.body.blog_img,
@@ -139,24 +146,19 @@ class Blog extends base{
    * 将博客移动到垃圾箱中
    */
   async deleteToTrash (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
-    if (!req.params.id) {
-      throw new Error('参数错误')
-    }
-    // 判断该文集是否 publish TODO
+    this.checkUserAuth(req)
+    // 判断该文集是否 publish
     let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id})
     if (!blog) {
       throw new Error('该博客不存在！')
     }
-    if (blog.blog_status == 'PUBLISH') {
+    if (blog.blog_status == constant.blog_status.publish) {
       throw new Error('取消博客发布后才能删除！')
     }
     // 查询垃圾桶中最大order
     let query = {
       user: req.session.user_id, 
-      blog_status: 'DELETE',
+      blog_status: constant.blog_status.deleted,
       status: 1
     }
     // 查询最大序号
@@ -175,7 +177,7 @@ class Blog extends base{
     
   }
   async getBlogComments (req, res, next) {
-    
+
   }
   async addBlogComment (req, res, next) {
     
@@ -183,19 +185,121 @@ class Blog extends base{
   async deleteBlogComment (req, res, next) {
     
   }
-  async pulish (req, res, next) {
-    
+  /**
+   * 博客发布与更新发布
+   * 检测blog状态是否为草稿。
+   * user_id是否对的上。
+   * 插入blog_his数据
+   * 更新tags数据。
+   * 将blog状态修改为已发布并更新发布信息。
+   */
+  async publish (req, res, next) {
+    this.checkUserAuth(req)
+    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id, status: 1})
+
+    if(!blog || (blog.blog_status != constant.blog_status.draft && blog.blog_status != constant.blog_status.publish)) {
+      throw new Error('该博客不能发布')
+    }
+
+    // 插入历史数据
+    let his = {
+      blog: blog._id,
+      blog_img: blog.write.blog_img,
+      title: blog.write.title,
+      content: blog.write.content,
+      operation_status: blog.blog_status === constant.blog_status.publish ? constant.blog_his_oper.updatePub : constant.blog_his_oper.publish
+    }
+    await blogsHis.create(his)
+
+    // 插入标签
+    tagTopic.addTags(req.body.tags)
+
+    let publish = {
+      blog_status: constant.blog_status.publish,
+      'publish.blog_img': blog.write.blog_img, // 题图地址
+      'publish.title': blog.write.title,
+      'publish.content': blog.write.content,
+      'publish.tags': req.body.tags,
+      'publish.blog_private': req.body.blog_private,
+    }
+    // 发布专栏
+    if (req.body.column) {
+      publish['publish.column'] = req.body.column
+    }
+    // 状态为草稿的博客，需要发布。
+    if(blog.blog_status === constant.blog_status.draft) {
+      publish['publish.publish_user'] = req.session.user_id // 发布人
+      publish['publish.publish_time'] = Date.now() // 第一次发布时间
+    }
+    // 状态为发布的博客，需要更新发布
+    if(blog.blog_status === constant.blog_status.publish) {
+      publish['publish.republish_time'] = Date.now() // 更新发布时间
+      delete publish['publish.column'] // 更新版本不能修改发布专栏
+    }
+    await blogs.updateOne({_id: req.params.id, user: req.session.user_id}, {"$set": publish})
+    res.send(this.succ('发布成功'))
   }
+  /**
+   * 博客发布时，查询博客之前是否发布过，获取发布信息。
+   * 顺便返回专栏与标签信息。
+   */
+  async getPublishSummaryById (req, res, next) {
+    this.checkUserAuth(req)
+    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id, status: 1})
+
+    // 查询专栏信息
+    let totalColumns = await column._getColumns(req.session.user_id)
+    
+    // 标签信息
+    let totalTags = await tagTopic._getTags()
+
+    res.send(this.succ('', {
+      column: blog.publish.column,
+      blog_private: blog.publish.blog_private,
+      tags: blog.publish.tags,
+      publish_user: blog.publish.publish_user,
+      publish_time: blog.publish.publish_time,
+      total_columns: totalColumns,
+      total_tags: totalTags
+    }))
+  }
+  async getPublishById (req, res, next) {
+    this.checkUserAuth(req)
+    let blog = await blogs.findOne({_id: req.params.id, status: 1}).populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
+    if (!blog) {
+      throw new Error('该博客不存在')
+    }
+    res.send(this.succ('', this._converPublish(blog)));
+  }
+  /**
+   * 取消发布，将博客状态修改为草稿。
+   */
+  async cancelPublish (req, res, next) {
+    this.checkUserAuth(req)
+    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id, status: 1})
+    if (!blog || blog.blog_status != constant.blog_status.publish) {
+      throw new Error('该博客不能取消发布')
+    }
+    // 插入历史数据
+    let his = {
+      blog: blog._id,
+      blog_img: blog.write.blog_img,
+      title: blog.write.title,
+      content: blog.write.content,
+      operation_status: constant.blog_his_oper.cancelPub
+    }
+    await blogsHis.create(his)
+
+    await blogs.updateOne({_id: req.params.id, user: req.session.user_id}, {blog_status: constant.blog_status.draft})
+    res.send(this.succ('取消发布成功'))
+  }
+  
+
   /**
    * 将博客从垃圾桶中删除。status = 0
    */
   async cleanBlog (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
-    if (!req.params.id) {
-      throw new Error('参数错误')
-    }
+    this.checkUserAuth(req)
     await blogs.updateOne({_id: req.params.id, user: req.session.user_id}, {status: '0'})
     res.send(this.succ('删除成功'))
   }
@@ -260,28 +364,41 @@ class Blog extends base{
     })
     return blog
   }
-  _convertBlog (blog_write) {
+  _convertBlog (blog) {
     return {
-      _id: blog_write._id,
-      user: blog_write.user,
-      blog_status: blog_write.blog_status,
-      status: blog_write.status,
-      book: blog_write.write.book,
-      blog_img: blog_write.write.blog_img,
-      title: blog_write.write.title,
-      content: blog_write.write.content,
-      blog_order: blog_write.write.blog_order,
-      create_time: blog_write.write.create_time,
-      write_user: blog_write.write.write_user,
-      write_time: blog_write.write.write_time
+      _id: blog._id,
+      user: blog.user,
+      blog_status: blog.blog_status,
+      status: blog.status,
+      book: blog.write.book,
+      blog_img: blog.write.blog_img,
+      title: blog.write.title,
+      content: blog.write.content,
+      blog_order: blog.write.blog_order,
+      create_time: blog.write.create_time,
+      write_user: blog.write.write_user,
+      write_time: blog.write.write_time
     }
   }
-  _converPublish (blog_write) {
+  _converPublish (blog) {
     return {
-      _id: blog_write._id,
-      user: blog_write.user,
-      blog_status: blog_write.blog_status,
-      status: blog_write.status
+      _id: blog._id,
+      user: blog.user,
+      blog_status: blog.blog_status,
+      status: blog.status,
+      blog_img: blog.publish.blog_img,
+      title: blog.publish.title,
+      content: blog.publish.content,
+      blog_type: blog.publish.blog_type,
+      column: blog.publish.column,
+      blog_private: blog.publish.blog_private,
+      reads: blog.publish.reads,
+      comments_count: blog.publish.comments_count,
+      thumbs_count: blog.publish.thumbs_count,
+      tags: blog.publish.tags,
+      publish_user: blog.publish.publish_user,
+      publish_time: blog.publish.publish_time,
+      republish_time: blog.publish.republish_time
     }
   }
 }

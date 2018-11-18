@@ -11,7 +11,7 @@ import column from '../controller/column'
 import comment from '../controller/comment'
 import feed from '../controller/feed'
 import message from '../controller/message'
-import tag from '../controller/tag'
+import tag from '../controller/tag_topic'
 import thumb from '../controller/thumb'
 import user from '../controller/user'
 
@@ -37,14 +37,18 @@ router.get('/blogs/:id/extends', blog.getBlogExtends)
 router.get('/blogs/:id/comments', blog.getBlogComments)
 router.post('/blogs/:id/comments', blog.addBlogComment)
 router.delete('/blogs/:id/comments/:commentId', blog.deleteBlogComment)
-router.patch('/blogs/:id/publish', blog.pulish)
+router.get('/publishs', blog.getPublishs)
+router.get('/publishs/:id/', blog.getPublishById)
+router.get('/publishs/:id/summary', blog.getPublishSummaryById)
+router.put('/publishs/:id/', blog.publish)
+router.delete('/publishs/:id/', blog.cancelPublish)
 router.delete('/blogs/:id', blog.cleanBlog)
 router.patch('/blogs/:id/reorder', blog.reorder)
 router.post('/blogs/:id/thumb', blog.addThumb)
 router.delete('/blogs/:id/thumb', blog.deleteThumb)
 router.get('/blogs/:id/history', blog.getBlogHistorys)
 router.get('/blogs/:id/history/:hisId', blog.getBlogHistory)
-router.patch('/blogs/:id/reversion', blog.reversion)
+router.post('/blogs/:id/reversion', blog.reversion)
 
 // trash请求URL
 router.get('/trashs', blog.getTrashs)

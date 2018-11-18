@@ -11,6 +11,7 @@ class Base{
     this.addImages = this.addImages.bind(this)
     this.guid = this.guid.bind(this)
     this.md5 = this.md5.bind(this)
+    this.checkUserAuth = this.checkUserAuth.bind(this)
     this.encryption = this.encryption.bind(this)
     this.succ = this.succ.bind(this)
     this.fail = this.fail.bind(this)
@@ -50,6 +51,14 @@ class Base{
   encryption (text) {
     let hash = crypto.createHash('md5')
     return hash.update(text + config.passwordSalt).digest('base64')
+  }
+  /**
+   * 用户权限检测
+   */
+  checkUserAuth (req) {
+    if (!req.session.user_id || req.session.visitor) {
+      throw new Error('用户登录后才能进行此操作')
+    }
   }
   /**
    * 浅拷贝

@@ -21,9 +21,7 @@ class Book extends Base {
    * 用户获得自己的books信息.
    */
   async getBooks (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
+    this.checkUserAuth(req)
     let query = {}
     query.creater = req.session.user_id
     query.status = 1
@@ -61,9 +59,7 @@ class Book extends Base {
     return books.create(booksData)
   }
   async getBookBlogs (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
+    this.checkUserAuth(req)
     // let bookData = await books.findOne({_id: req.params.id, status: 1, creater: req.session.user_id})
     // let query = { creater: req.session.user_id, status: 1 }
     // // 判断是否是trash类型
@@ -80,9 +76,7 @@ class Book extends Base {
     res.send(this.succ('', blogsData))
   }
   async getBookBlogsOld (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
+    this.checkUserAuth(req)
     let bookData = await books.findOne({_id: req.params.id, status: 1, creater: req.session.user_id})
     let query = { creater: req.session.user_id, status: 1 }
     // 判断是否是trash类型
@@ -101,9 +95,7 @@ class Book extends Base {
    * 添加book。
    */
   async addBook (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
+    this.checkUserAuth(req)
     // 获得min order -1
     let maxBook = await books.findOne({status: 1}).sort({'book_order': -1}).skip(1).limit(1)
     let order = maxBook.book_order + 1
@@ -123,9 +115,7 @@ class Book extends Base {
   }
   // 文集名称修改
   async bookRename (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
+    this.checkUserAuth(req)
     // TODO 入参需要非空校验。
     let query = {
       _id: req.body.book_id,
@@ -136,9 +126,7 @@ class Book extends Base {
   }
   // 删除文集
   async deleteBook (req, res, next) {
-    if (!req.session.user_id || req.session.visitor) {
-      throw new Error('用户登录后才能进行此操作')
-    }
+    this.checkUserAuth(req)
     // 文集中没有文章才可以删除
     let blogList = await blogs.find({book: req.params.id, status: 1})
     if (!blogList || blogList.length == 0) {
