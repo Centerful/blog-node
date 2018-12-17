@@ -8,9 +8,10 @@ const Schema = mongoose.Schema
 const columnsModel = new Schema ({
   column_name: String, // 专栏名称
   column_img: String, // 专栏配图
-  column_status: String, // 专栏状态:OPEN,CLOSE
+  column_status: {type: String, default: 'OPEN'}, // 专栏状态:OPEN,CLOSE
   introduction: String, // 专栏介绍
-  blog_count: Number, // 专栏博客数量
+  blog_count: {type: Number, default: 0}, // 专栏博客数量
+  tags: [String], // 标签
   creater: { type: Schema.Types.ObjectId, ref: 'users' }, // 创建人
   create_time: {type: Date, default: Date.now}, // 创建时间
   updater: { type: Schema.Types.ObjectId, ref: 'users' }, // 修改人(修改人最开始是创建人)

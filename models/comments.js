@@ -8,7 +8,7 @@ const Schema = mongoose.Schema
 const commentsModel = new Schema ({
   relation: [{ type: Schema.Types.ObjectId, ref: 'blogs' }, { type: Schema.Types.ObjectId, ref: 'feeds' }], // 博客,feed的ID
   relation_type: String, // 评论类型:BLOGS,FEEDS
-  comment_date: {type: Date, default: Date.now},, // 评论时间
+  comment_date: {type: Date, default: Date.now}, // 评论时间
   content: String, // 评论内容
   reply: { type: Schema.Types.ObjectId, ref: 'comments' }, // 回复评论ID
   creater: { type: Schema.Types.ObjectId, ref: 'users' }, // 创建人

@@ -67,6 +67,7 @@ router.delete('/books/:id', book.deleteBook)
 
 // 专栏请求URL
 router.get('/columns', column.getColumns)
+router.get('/columns/select', column.getColumnsBySelect)
 router.get('/columns/:id', column.getColumnById)
 router.post('/columns', column.addColumn)
 router.put('/columns/:id', column.updateColumn)

@@ -9,6 +9,7 @@ import base from './common/base'
 import constant from './common/constant'
 import tagTopic from './tag_topic'
 import column from './column'
+import columns from '../models/columns'
 
 class Blog extends base{
   constructor(){
@@ -49,7 +50,8 @@ class Blog extends base{
     let { // 对象解构
       title,
       user_id,
-      tag_id,
+      tag_name,
+      column_id,
       update_time,
       blog_type,
       last_update_time // 最后一个博客的更新时间
@@ -59,12 +61,14 @@ class Blog extends base{
       { query["publish.title"] = title }
     if (user_id) 
       { query["user"] = user_id }
-    if (tag_id) 
-      { query["publish.tags"] = tag_id }
+    if (tag_name) 
+      { query["publish.tags"] = tag_name }
     if (update_time) 
       { query["publish.update_time"] = update_time }
     if (blog_type) 
       { query["publish.blog_type"] = blog_type }
+    if (column_id)
+      { query["publish.column"] = column_id }
     if (last_update_time) // 这里需要调整。
       { query["publish.last_update_time"] = last_update_time }
     query.blog_status = constant.blog_status.publish
@@ -91,7 +95,7 @@ class Blog extends base{
     if (!blog) {
       throw new Error('该博客不存在')
     }
-    res.send(this.succ('', this._convertBlog(blog)));
+    res.send(this.succ('', this._convertBlog(blog)))
   }
   /**
    * 新增博客信息
@@ -245,21 +249,18 @@ class Blog extends base{
    */
   async getPublishSummaryById (req, res, next) {
     this.checkUserAuth(req)
-    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id, status: 1})
-
-    // 查询专栏信息
-    let totalColumns = await column._getColumns(req.session.user_id)
+    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id, status: 1}).populate({path: 'publish.column', model: columns, select: 'column_name _id' })
     
     // 标签信息
     let totalTags = await tagTopic._getTags()
 
     res.send(this.succ('', {
-      column: blog.publish.column,
+      column_id: blog.publish.column ? blog.publish.column.column_id : null,
+      column_name: blog.publish.column ? blog.publish.column.column_name : null,
       blog_private: blog.publish.blog_private,
       tags: blog.publish.tags,
       publish_user: blog.publish.publish_user,
       publish_time: blog.publish.publish_time,
-      total_columns: totalColumns,
       total_tags: totalTags
     }))
   }

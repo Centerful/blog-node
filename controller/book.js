@@ -111,7 +111,7 @@ class Book extends Base {
     res.send(this.succ('', booksData))
   }
   async reorder (req, res, next) {
-
+    
   }
   // 文集名称修改
   async bookRename (req, res, next) {
