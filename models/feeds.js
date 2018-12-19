@@ -9,7 +9,9 @@ const feedsModel = new Schema ({
   feed_date: {type: Date, default: Date.now}, // 发布时间
   feed_status: String, // FEED类型:ENCRYPT,PRIVATE,NORMAL
   content: String, // FEED内容
-  topic: { type: Schema.Types.ObjectId, ref: 'tagtopics' }, // 参与话题ID
+  images: [String], // 图片
+  videos: [String], // 视频 目前不会用到
+  topic: [String], // 参与话题ID
   creater: { type: Schema.Types.ObjectId, ref: 'users' }, // 创建人
   create_time: {type: Date, default: Date.now}, // 创建时间
   updater: { type: Schema.Types.ObjectId, ref: 'users' }, // 修改人(修改人最开始是创建人)

@@ -18,7 +18,7 @@ class TagTopic {
   async deleteTag (req, resp, next) {
     
   }
-  async addTags (tags) {
+  async addTags (tags, type) {
     if (!tags || tags.length === 0) {
       return
     }
@@ -36,7 +36,7 @@ class TagTopic {
     let arr = tags.map((ele) => {
       return {
         name: ele,
-        type: constant.tag_type.tag
+        type: type || constant.tag_type.tag
       }
     })
     // 不必等待。
