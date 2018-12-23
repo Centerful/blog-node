@@ -32,7 +32,10 @@ const blogsModel = new Schema ({
       thumbs: [{ type: Schema.Types.ObjectId, ref: 'users' }], // 点赞用户
     }],
     thumbs_count: { type: Number, default: 0 }, // 博客点赞数
-    thumbs: [{ type: Schema.Types.ObjectId, ref: 'users' }], // 点赞用户
+    thumbs: [{ 
+      user: { type: Schema.Types.ObjectId, ref: 'users' }, // 点赞的用户
+      create_time: { type: Date, default: Date.now }, // 点赞的时间
+    }], // 点赞用户
     tags: [String],
     publish_user: { type: Schema.Types.ObjectId, ref: 'users' }, // 发布人
     publish_time: Date, // 第一次发版时间

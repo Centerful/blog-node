@@ -4,6 +4,7 @@ import feedsData from '../models/mock/feed-data'
 import feedsCommentsData from '../models/mock/feed-comments-data.js'
 
 import Base from './common/base'
+import users from '../models/users'
 import feeds from '../models/feeds'
 import tagTopic from './tag_topic'
 import constant from "./common/constant";
@@ -23,7 +24,14 @@ class Feed extends Base{
     this.deleteThumb = this.deleteThumb.bind(this)
   }
   async getFeeds (req, res, next) {
-    res.send(feedsData);
+    let {
+      user_id
+    } = req.query
+    let query = {}
+    if (user_id) 
+      { query.user = user_id }
+    let result = await feeds.find(query, 'feed_date feed_status content images videos topic comments_count thumbs_count thumbs creater update_time ').populate({path: 'creater', model: users, select: 'nick_name user_avatar _id' })
+    res.send(this.succ('', result))
   }
   async addFeeds (req, res, next) {
     this.checkUserAuth(req)
@@ -32,6 +40,8 @@ class Feed extends Base{
       content: req.body.feedContent,
       videos: req.body.feedVideo,
       topic: req.body.topic,
+      creater: req.session.user_id,
+      updater: req.session.user_id,
       feed_status: req.body.feed_status,
       feed_date: Date.now()
     }
