@@ -9,6 +9,7 @@ import users from '../models/users'
 import feeds from '../models/feeds'
 import tagTopic from './tag_topic'
 import constant from "./common/constant";
+import { EDESTADDRREQ } from 'constants';
 
 class Feed extends Base{
   constructor(){
@@ -61,10 +62,26 @@ class Feed extends Base{
   }
   // 查询feed的评论，
   async getFeedComments (req, res, next) {
-    let comments = await feeds.findOne({_id: req.params.id}, 'comments')
+    let limit = 10
+    let start = 0
+    let query = {
+      _id: req.params.id
+    }
+    let feed = await feeds.findOne(query, 'comments')
       .populate({ path: 'comments.user', model: users, select: 'nick_name user_avatar _id' })
       .populate({path: 'comments.reply_user', model: users, select: 'nick_name user_avatar _id' })
-    res.send(this.succ('', comments))
+    let comments = feed.comments.sort((x, y)=>{
+      return x._id < y._id ? 1 : -1
+    })
+    if (req.query.comment_id) {
+      comments = comments.filter((ele)=>{
+        return ele._id < req.query.comment_id
+      })
+    }
+    let data = {
+      comments: comments.slice(0, limit)
+    }
+    res.send(this.succ('', data))
   }
   /**
    * 新增feed评论，feed的评论是简单评论，文行文本框，长度不能超过200字符
