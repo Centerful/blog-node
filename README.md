@@ -74,7 +74,8 @@ npm start dev
 - [ ] 自动任务模块.-执行定时的调度任务.
 - [ ] 对象扩展运算符了解一下,应用在controller请求入参中.
 
-
+# 还未解决的问题
+- [ ] feed查询一条comment时会讲该feed的全部comments都查询出来。
 
 
 ## 对象扩展运算符.

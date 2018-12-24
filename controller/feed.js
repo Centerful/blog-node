@@ -4,6 +4,7 @@ import feedsData from '../models/mock/feed-data'
 import feedsCommentsData from '../models/mock/feed-comments-data.js'
 
 import Base from './common/base'
+import Sequence from './common/sequence'
 import users from '../models/users'
 import feeds from '../models/feeds'
 import tagTopic from './tag_topic'
@@ -30,7 +31,7 @@ class Feed extends Base{
     let query = {}
     if (user_id) 
       { query.user = user_id }
-    let result = await feeds.find(query, 'feed_date feed_status content images videos topic comments_count thumbs_count thumbs creater update_time ').populate({path: 'creater', model: users, select: 'nick_name user_avatar _id' })
+    let result = await feeds.find(query, 'feed_date feed_status content images videos topic comments_count thumbs_count thumbs user update_time ').populate({path: 'user', model: users, select: 'nick_name user_avatar _id' }).sort({'update_time': -1})
     res.send(this.succ('', result))
   }
   async addFeeds (req, res, next) {
@@ -40,8 +41,7 @@ class Feed extends Base{
       content: req.body.feedContent,
       videos: req.body.feedVideo,
       topic: req.body.topic,
-      creater: req.session.user_id,
-      updater: req.session.user_id,
+      user: req.session.user_id,
       feed_status: req.body.feed_status,
       feed_date: Date.now()
     }
@@ -59,20 +59,35 @@ class Feed extends Base{
   async private (req, res, next) {
     
   }
+  // 查询feed的评论，
   async getFeedComments (req, res, next) {
-    if (req.params.id) {
-      let data = feedsCommentsData.find((e) => {
-        if (e.feedId === parseInt(req.params.id)) {
-          return e
-        }
-      })
-      res.send(data ? data.comments : '');
-    } else {
-      // TODO 抛出异常
-    }
+    let comments = await feeds.findOne({_id: req.params.id}, 'comments')
+      .populate({ path: 'comments.user', model: users, select: 'nick_name user_avatar _id' })
+      .populate({path: 'comments.reply_user', model: users, select: 'nick_name user_avatar _id' })
+    res.send(this.succ('', comments))
   }
+  /**
+   * 新增feed评论，feed的评论是简单评论，文行文本框，长度不能超过200字符
+   * feed._id,conetnt,user(req中的用户),reply(回复的评论),reply(回复评论的用户),origin(第一条评论的_id)
+   */
   async addFeedComment (req, res, next) {
-    
+    this.checkUserAuth(req)
+    let _id = await new Sequence().getId()
+    let comment = {
+      _id: _id,
+      origin: req.body.origin,
+      user: req.session.user_id,
+      content: req.body.content,
+      reply: req.body.reply,
+      reply_user: req.body.reply_user
+    }
+    let count = await feeds.findOne({_id: req.body.feed_id}, 'comments_count ')
+    // comments_count: count.comments_count + 1
+    await feeds.updateOne({_id: req.body.feed_id, user: req.session.user_id}, {"$push": { comments: comment }, "$inc": {comments_count: 1}})
+    let reply = await feeds.findOne({_id: req.body.feed_id, "comments._id": _id}, 'comments')
+      .populate({ path: 'comments.user', model: users, select: 'nick_name user_avatar _id' })
+      .populate({path: 'comments.reply_user', model: users, select: 'nick_name user_avatar _id' })
+    res.send(this.succ('添加评论成功', reply))
   }
   async deleteFeedComment (req, res, next) {
     
