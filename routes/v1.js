@@ -85,7 +85,7 @@ router.get('/feeds', feed.getFeeds)
 router.post('/feeds', feed.addFeeds)
 router.delete('/feeds/:id', feed.deleteFeeds)
 router.patch('/feeds/:id/encrypt', feed.encrypt)
-router.patch('/feeds/:id/private', feed.private)
+router.patch('/feeds/:id/public', feed.public)
 
 // tag请求URL
 router.get('/tags', tag.getTags)

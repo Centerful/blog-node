@@ -19,7 +19,7 @@ class Feed extends Base{
     this.addFeeds = this.addFeeds.bind(this)
     this.deleteFeeds = this.deleteFeeds.bind(this)
     this.encrypt = this.encrypt.bind(this)
-    this.private = this.private.bind(this)
+    this.public = this.public.bind(this)
   }
   async getFeeds (req, res, next) {
     let {
@@ -31,6 +31,7 @@ class Feed extends Base{
       { query.user = user_id }
     if (_id)
       { query._id = {$lt: _id}}
+    query.status = 1
     // 使用lean方法，mongoose返回的是json对象，不再是mongoose的文档对象，此时可以对返回对象进行修改。
     let result = await feeds.find(query, '_id feed_date feed_status content images videos topic comments_count thumbs_count thumbs user update_time ').populate({path: 'user', model: users, select: 'nick_name user_avatar _id' }).sort({'update_time': -1}).limit(10).lean()
     if (!result || result.length <= 0) {
@@ -76,13 +77,24 @@ class Feed extends Base{
     tagTopic.addTags(req.body.topic, constant.tag_type.topic)
   }
   async deleteFeeds (req, res, next) {
-    
+    this.checkUserAuth(req)
+    // 只能删除自己的feed
+    let result = await feeds.updateOne({_id: req.params.id, user: req.session.user_id}, {$set: {status: 0}})
+    if (result.ok)
+      res.send(this.succ('删除成功'))
+    else
+      res.send(this.fail('删除失败'))
   }
   async encrypt (req, res, next) {
     
   }
-  async private (req, res, next) {
-    
+  async public (req, res, next) {
+    this.checkUserAuth(req)
+    let result = await feeds.updateOne({_id: req.params.id, user: req.session.user_id}, {$set: {feed_status: 'NORMAL'}})
+    if (result.ok)
+      res.send(this.succ('操作成功'))
+    else
+      res.send(this.fail('操作失败'))
   }
 }
 

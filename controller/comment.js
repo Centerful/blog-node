@@ -97,11 +97,11 @@ class Comment extends base {
   // 删除评论
   async deleteComment (req, res, next) {
     this.checkUserAuth(req)
-    let data = await comments.findOne({_id: req.params._id})
+    let data = await comments.findOne({_id: req.params.id})
     if (!this._checkDeleteComment()){
       this.throwEx('用户无法删除该评论')
     }
-    await comments.updateOne({_id: req.params._id}, {status: 0, comment_status: constant.comment_status.deleted})
+    await comments.updateOne({_id: req.params.id}, {status: 0, comment_status: constant.comment_status.deleted})
     if (data.relation_type.toUpperCase() == constant.comment_rela_type.feed) {
       await feeds.updateOne({_id: data.relation}, {"$inc": {comments_count: -1}})
     }  else if (data.relation_type.toUpperCase() == constant.comment_rela_type.blog) {
