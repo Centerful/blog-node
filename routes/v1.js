@@ -44,8 +44,6 @@ router.put('/publishs/:id/', blog.publish)
 router.delete('/publishs/:id/', blog.cancelPublish)
 router.delete('/blogs/:id', blog.cleanBlog)
 router.patch('/blogs/:id/reorder', blog.reorder)
-router.post('/blogs/:id/thumb', blog.addThumb)
-router.delete('/blogs/:id/thumb', blog.deleteThumb)
 router.get('/blogs/:id/history', blog.getBlogHistorys)
 router.get('/blogs/:id/history/:hisId', blog.getBlogHistory)
 router.post('/blogs/:id/reversion', blog.reversion)
@@ -78,9 +76,9 @@ router.delete('/columns/:id/blogs/:blogId', column.blogRemove)
 
 // 评论请求URL
 router.put('/comments/:id', comment.updateComment)
+router.get('/comments', comment.getComments)
+router.post('/comments', comment.addComment)
 router.delete('/comments/:id', comment.deleteComment)
-router.post('/comments/:id/thumb', comment.addThumb)
-router.delete('/comments/:id/thumb', comment.deleteThumb)
 
 // feed请求URL
 router.get('/feeds', feed.getFeeds)
@@ -88,11 +86,6 @@ router.post('/feeds', feed.addFeeds)
 router.delete('/feeds/:id', feed.deleteFeeds)
 router.patch('/feeds/:id/encrypt', feed.encrypt)
 router.patch('/feeds/:id/private', feed.private)
-router.get('/feeds/:id/comments', feed.getFeedComments)
-router.post('/feeds/:id/comments', feed.addFeedComment)
-router.delete('/feeds/:id/comments/:commentId', feed.deleteFeedComment)
-router.post('/feeds/:id/thumb', feed.addThumb)
-router.delete('/feeds/:id/thumb', feed.deleteThumb)
 
 // tag请求URL
 router.get('/tags', tag.getTags)
@@ -101,6 +94,8 @@ router.post('/tags', tag.addTag)
 router.delete('/tags/:id', tag.deleteTag)
 
 // thumb请求URL
+router.post('/thumbs', thumb.addThumbs)
+router.delete('/thumbs', thumb.deleteThumbs)
 router.get('/thumbs', thumb.getThumbs)
 router.get('/thumbs/:id/users', thumb.getThumbUsers)
 

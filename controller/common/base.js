@@ -19,6 +19,7 @@ class Base{
     this.dcopy = this.dcopy.bind(this)
     this.ccopy = this.ccopy.bind(this)
     this.accopy = this.accopy.bind(this)
+    this.throwEx = this.throwEx.bind(this)
   }
   /**
    * 添加图片
@@ -59,6 +60,9 @@ class Base{
     if (!req.session.user_id || req.session.visitor) {
       throw new Error('用户登录后才能进行此操作')
     }
+  }
+  throwEx (msg) {
+    throw new Error('msg')
   }
   /**
    * 浅拷贝
