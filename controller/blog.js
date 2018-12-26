@@ -76,8 +76,8 @@ class Blog extends base{
     let data = await blogs.find(query).populate({path: 'user', model: users, select: 'nick_name user_avatar' }).sort({'publish.publish_time': -1}).limit(10)
     let result = data.map((ele) => {
       let conver = this._converPublish(ele)
-      if (ele.content) {
-        conver.content = conver.content.substring(0, 200)
+      if (conver.content) {
+        conver.content = conver.content.substring(0, 300)
       }
       return conver
     })
