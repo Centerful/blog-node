@@ -90,7 +90,6 @@ class Blog extends base{
    * 查询博客详细信息
    */
   async getBlogById (req, res, next) {
-    this.checkUserAuth(req)
     let blog = await blogs.findOne({_id: req.params.id}).populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
     if (!blog) {
       throw new Error('该博客不存在')
@@ -265,7 +264,6 @@ class Blog extends base{
     }))
   }
   async getPublishById (req, res, next) {
-    this.checkUserAuth(req)
     let blog = await blogs.findOne({_id: req.params.id, status: 1}).populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
     if (!blog) {
       throw new Error('该博客不存在')
