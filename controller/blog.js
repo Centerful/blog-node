@@ -248,7 +248,8 @@ class Blog extends base{
    */
   async getPublishSummaryById (req, res, next) {
     this.checkUserAuth(req)
-    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id, status: 1}).populate({path: 'publish.column', model: columns, select: 'column_name _id' })
+    let blog = await blogs.findOne({_id: req.params.id, user: req.session.user_id, status: 1})
+      .populate({path: 'publish.column', model: columns, select: 'column_name _id' })
     
     // 标签信息
     let totalTags = await tagTopic._getTags()
@@ -264,7 +265,9 @@ class Blog extends base{
     }))
   }
   async getPublishById (req, res, next) {
-    let blog = await blogs.findOne({_id: req.params.id, status: 1}).populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
+    let blog = await blogs.findOne({_id: req.params.id, status: 1})
+      .populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
+      .populate({path: 'publish.column', model: columns, select: 'column_name _id column_img introduction' })
     if (!blog) {
       throw new Error('该博客不存在')
     }

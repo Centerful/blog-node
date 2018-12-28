@@ -15,7 +15,7 @@ const usersModel = new Schema ({
   backdrop_img: String, // 背景图片URL
   gender: String, // 性别:MALE,FEMALE,NULL
   hobby: String, // 爱好
-  signature: {type: String, default: '这个人很懒什么都没写...'}, // 用户签名
+  signature: {type: String, default: '这个人比较懒什么都没写...'}, // 用户签名
   introduction: String, // 自我介绍
   resume: String, // 简历
   residence: String, // 居住地
