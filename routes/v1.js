@@ -47,6 +47,7 @@ router.patch('/blogs/:id/reorder', blog.reorder)
 router.get('/blogs/:id/history', blog.getBlogHistorys)
 router.get('/blogs/:id/history/:hisId', blog.getBlogHistory)
 router.post('/blogs/:id/reversion', blog.reversion)
+router.get('/recommendations', blog.getRecommendations)
 
 // trash请求URL
 router.get('/trashs', blog.getTrashs)

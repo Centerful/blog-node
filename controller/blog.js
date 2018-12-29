@@ -40,6 +40,7 @@ class Blog extends base{
     this.updateTrash = this.updateTrash.bind(this)
     this.restore = this.restore.bind(this)
     this.deleteTrash = this.deleteTrash.bind(this)
+    this.getRecommendations = this.getRecommendations.bind(this)
     this._convertBlog = this._convertBlog.bind(this)
     this._converPublish = this._converPublish.bind(this)
   }
@@ -73,7 +74,10 @@ class Blog extends base{
       { query["publish.last_update_time"] = last_update_time }
     query.blog_status = constant.blog_status.publish
     query.status = 1
-    let data = await blogs.find(query).populate({path: 'user', model: users, select: 'nick_name user_avatar' }).sort({'publish.publish_time': -1}).limit(10)
+    let data = await blogs.find(query)
+      .populate({path: 'user', model: users, select: 'nick_name user_avatar' })
+      .sort({'publish.publish_time': -1})
+      .limit(10)
     let result = data.map((ele) => {
       let conver = this._converPublish(ele)
       if (conver.content) {
@@ -272,6 +276,35 @@ class Blog extends base{
       throw new Error('该博客不存在')
     }
     res.send(this.succ('', this._converPublish(blog)));
+  }
+  // 获得推荐阅读信息，需要-图片、标题、创建时间、作者、部分内容（100字）
+  async getRecommendations (req, res, next) {
+    let query = {}
+    if (req.query.publish_time)
+      { query['publish.publish_time'] = {$lt: req.query.publish_time}}
+    if (req.query._id)
+      { query._id = {$ne: req.query._id}}
+    query.blog_status = constant.blog_status.publish
+    query.status = 1
+    let data = await blogs.find(query, '_id user publish')
+      .populate({path: 'user', model: users, select: 'nick_name user_avatar' })
+      .populate({path: 'publish.column', model: columns, select: 'column_name' })
+      .sort({'publish.publish_time': -1})
+      .limit(5).lean()
+    let result = {}
+    result.recommendations = data.map((ele) => {
+      if (ele.publish.content) {
+        ele.publish.content = ele.publish.content.substring(0, 100)
+      }
+      return ele
+    })
+    if (result.recommendations && result.recommendations.length > 4) {
+      result.more = true
+      result.recommendations = result.recommendations.slice(0, result.recommendations.length - 1)
+    } else {
+      result.more = false
+    }
+    res.send(this.succ('获取推荐阅读内容', result))
   }
   /**
    * 取消发布，将博客状态修改为草稿。
