@@ -38,7 +38,7 @@ class Thumb extends base {
     } else if (data.relation_type.toUpperCase() == constant.thumb_rela_type.comment) {
       await comments.updateOne({_id: data.relation}, {"$inc": {thumbs_count: 1}})
     } else if (data.relation_type.toUpperCase() == constant.thumb_rela_type.blog) {
-      await blogs.updateOne({_id: data.relation}, {"$inc": {thumbs_count: 1}})
+      await blogs.updateOne({_id: data.relation}, {"$inc": {'publish.thumbs_count': 1}})
     }
     res.send(this.succ('点赞成功'))
   }

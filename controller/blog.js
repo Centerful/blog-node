@@ -6,6 +6,7 @@ import blogsHis from '../models/blogs_his'
 import books from '../models/books'
 import users from '../models/users'
 import base from './common/base'
+import thumb from './thumb'
 import constant from './common/constant'
 import tagTopic from './tag_topic'
 import column from './column'
@@ -109,7 +110,7 @@ class Blog extends base{
       user: req.session.user_id,
       'write.title': req.body.title,
       'write.book': req.body.books_id,
-      'write.blog_order': req.body.blog_order
+      'write.blog_order': req.body.blog_order // TODO 这个order不应该由前端传给后端，此处应当自己查询对应文集的文章自己得出order值
     }
     blog_write = await blogs.create(blog_write)
 
@@ -271,9 +272,19 @@ class Blog extends base{
   async getPublishById (req, res, next) {
     let blog = await blogs.findOne({_id: req.params.id, status: 1})
       .populate({path: 'user', model: users, select: 'nick_name user_avatar signature _id' })
-      .populate({path: 'publish.column', model: columns, select: 'column_name _id column_img introduction' })
+      .populate({path: 'publish.column', model: columns, select: 'column_name _id column_img introduction' }).lean()
     if (!blog) {
       throw new Error('该博客不存在')
+    }
+    
+    let ths = await thumb._isThumbs({
+      relation: [blog._id],
+      user: req.session.user_id
+    })
+    if (ths && ths.length > 0) {
+      blog.publish.isThumb = true
+    } else {
+      blog.publish.isThumb = false
     }
     res.send(this.succ('', this._converPublish(blog)));
   }
@@ -400,41 +411,20 @@ class Blog extends base{
     return blog
   }
   _convertBlog (blog) {
-    return {
+    return _.merge({
       _id: blog._id,
       user: blog.user,
       blog_status: blog.blog_status,
       status: blog.status,
-      book: blog.write.book,
-      blog_img: blog.write.blog_img,
-      title: blog.write.title,
-      content: blog.write.content,
-      blog_order: blog.write.blog_order,
-      create_time: blog.write.create_time,
-      write_user: blog.write.write_user,
-      write_time: blog.write.write_time
-    }
+    }, blog.write)
   }
   _converPublish (blog) {
-    return {
+    return _.merge({
       _id: blog._id,
       user: blog.user,
       blog_status: blog.blog_status,
       status: blog.status,
-      blog_img: blog.publish.blog_img,
-      title: blog.publish.title,
-      content: blog.publish.content,
-      blog_type: blog.publish.blog_type,
-      column: blog.publish.column,
-      blog_private: blog.publish.blog_private,
-      reads: blog.publish.reads,
-      comments_count: blog.publish.comments_count,
-      thumbs_count: blog.publish.thumbs_count,
-      tags: blog.publish.tags,
-      publish_user: blog.publish.publish_user,
-      publish_time: blog.publish.publish_time,
-      republish_time: blog.publish.republish_time
-    }
+    }, blog.publish)
   }
 }
 

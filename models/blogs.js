@@ -18,24 +18,7 @@ const blogsModel = new Schema ({
     blog_private: { type: Boolean, default: false },  // 是否为私密博客:true,false
     reads: { type: Number, default: 0 },  // 博客阅读数
     comments_count: { type: Number, default: 0 }, // 博客评论数
-    comments: [{
-      _id: String, // 唯一标识
-      origin: String, // 第一条评论的_id
-      user: { type: Schema.Types.ObjectId, ref: 'users' }, // 发表评论的用户
-      create_time: { type: Date, default: Date.now }, // 发表评论的时间
-      update_time: Date, // 修改评论的时间
-      content: String,
-      reply: String, // comments
-      reply_user: { type: Schema.Types.ObjectId, ref: 'users' },
-      comment_status: { type: String, default: '' }, // NORMAL,UPDATE,DELETE,FLOD
-      thumbs_count: { type: Number, default: 0 },
-      thumbs: [{ type: Schema.Types.ObjectId, ref: 'users' }], // 点赞用户
-    }],
     thumbs_count: { type: Number, default: 0 }, // 博客点赞数
-    thumbs: [{ 
-      user: { type: Schema.Types.ObjectId, ref: 'users' }, // 点赞的用户
-      create_time: { type: Date, default: Date.now }, // 点赞的时间
-    }], // 点赞用户
     tags: [String],
     publish_user: { type: Schema.Types.ObjectId, ref: 'users' }, // 发布人
     publish_time: Date, // 第一次发版时间
