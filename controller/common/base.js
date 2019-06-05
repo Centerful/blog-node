@@ -62,7 +62,7 @@ class Base{
     }
   }
   throwEx (msg) {
-    throw new Error('msg')
+    throw new Error(msg)
   }
   /**
    * 浅拷贝
